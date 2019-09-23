@@ -1,0 +1,8 @@
+# IDE settings
+.classpath
+.project
+.settings/
+
+# Binary Files
+*.class
+*.lst
