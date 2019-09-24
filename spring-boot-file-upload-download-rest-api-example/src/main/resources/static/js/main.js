@@ -10,6 +10,8 @@ var multipleFileUploadInput = document.querySelector('#multipleFileUploadInput')
 var multipleFileUploadError = document.querySelector('#multipleFileUploadError');
 var multipleFileUploadSuccess = document.querySelector('#multipleFileUploadSuccess');
 
+var testButton = document.querySelector('#tester');
+
 function uploadSingleFile(file) {
     var formData = new FormData();
     formData.append("file", file);
@@ -62,6 +64,20 @@ function uploadMultipleFiles(files) {
     xhr.send(formData);
 }
 
+testButton.addEventListener('click', function(event) {
+  console.log("Clicked Test Button!");
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "/testPath");
+
+  xhr.onload = function() {
+    console.log(xhr.responseText);
+  }
+
+  xhr.send();
+  event.preventDefault();
+});
+
 singleUploadForm.addEventListener('submit', function(event){
     var files = singleFileUploadInput.files;
     if(files.length === 0) {
@@ -73,13 +89,13 @@ singleUploadForm.addEventListener('submit', function(event){
 }, true);
 
 
-multipleUploadForm.addEventListener('submit', function(event){
-    var files = multipleFileUploadInput.files;
-    if(files.length === 0) {
-        multipleFileUploadError.innerHTML = "Please select at least one file";
-        multipleFileUploadError.style.display = "block";
-    }
-    uploadMultipleFiles(files);
-    event.preventDefault();
-}, true);
+// multipleUploadForm.addEventListener('submit', function(event){
+//     var files = multipleFileUploadInput.files;
+//     if(files.length === 0) {
+//         multipleFileUploadError.innerHTML = "Please select at least one file";
+//         multipleFileUploadError.style.display = "block";
+//     }
+//     uploadMultipleFiles(files);
+//     event.preventDefault();
+// }, true);
 

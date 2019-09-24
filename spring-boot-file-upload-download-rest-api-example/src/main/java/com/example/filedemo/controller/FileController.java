@@ -1,6 +1,8 @@
 package com.example.filedemo.controller;
 
+import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.UploadFileResponse;
+import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,16 @@ public class FileController {
 
     @Autowired
     private FileStorageService fileStorageService;
+    
+    @Autowired
+    private AcsApiService acsApiService;
+
+    @GetMapping("/testPath")
+    public BasicResponse testPath() {
+      acsApiService.getAllStates();
+
+      return new BasicResponse("Success", "Received all states");
+    }
 
     @PostMapping("/uploadFile")
     public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
