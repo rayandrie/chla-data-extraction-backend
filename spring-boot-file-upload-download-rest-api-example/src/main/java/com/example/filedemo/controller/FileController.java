@@ -1,6 +1,8 @@
 package com.example.filedemo.controller;
 
+import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.UploadFileResponse;
+import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.FileStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +17,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class FileController {
@@ -26,6 +25,16 @@ public class FileController {
 
     @Autowired
     private FileStorageService fileStorageService;
+    
+    @Autowired
+    private AcsApiService acsApiService;
+
+    @GetMapping("/getAcsCityStateInfo")
+    public BasicResponse getAcsCityStateInfo() {
+      acsApiService.getAllStates();
+
+      return new BasicResponse("Success", "Received all City State Information");
+    }
 
     @PostMapping("/uploadFile")
     public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
