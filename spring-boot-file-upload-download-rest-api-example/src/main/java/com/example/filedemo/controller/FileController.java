@@ -29,6 +29,11 @@ public class FileController {
     @Autowired
     private AcsApiService acsApiService;
 
+    @GetMapping("/testing")
+    public BasicResponse testing() {
+      return new BasicResponse("Success", "Hit /testing endpoint");
+    }
+
     @GetMapping("/getAcsCityStateInfo")
     public BasicResponse getAcsCityStateInfo() {
       acsApiService.getAllStates();
