@@ -17,9 +17,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 public class FileController {
@@ -32,11 +29,11 @@ public class FileController {
     @Autowired
     private AcsApiService acsApiService;
 
-    @GetMapping("/testPath")
-    public BasicResponse testPath() {
+    @GetMapping("/getAcsCityStateInfo")
+    public BasicResponse getAcsCityStateInfo() {
       acsApiService.getAllStates();
 
-      return new BasicResponse("Success", "Received all states");
+      return new BasicResponse("Success", "Received all City State Information");
     }
 
     @PostMapping("/uploadFile")
