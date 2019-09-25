@@ -1,7 +1,6 @@
 package com.example.filedemo.service;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.example.filedemo.response.acs.wrapper.AcsStateObject;
@@ -17,8 +16,10 @@ public class AcsApiService {
   // API Key
   private final String ACS_API_KEY = "c28b7e5f2f3f178a55f8a17d91094ca44216fe39";
 
-  // URI Paths
+  // URL Paths
   private final String URL_GET_STATE_INFO = "https://api.census.gov/data/2014/pep/natstprc?get=STNAME,POP&DATE_=7&for=state:*";
+
+  private final String URL_GET_POPULATION = "https://api.census.gov/data/2017/acs/acs5?get=NAME,B00001_001E&for=state:*&key=";
 
   private static final Logger logger = LoggerFactory.getLogger(AcsApiService.class);
   private RestTemplate restService;
