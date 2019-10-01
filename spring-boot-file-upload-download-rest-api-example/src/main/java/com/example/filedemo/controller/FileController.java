@@ -36,7 +36,7 @@ public class FileController {
 
     @GetMapping("/getAcsCityStateInfo")
     public BasicResponse getAcsCityStateInfo() {
-      acsApiService.getAllStates();
+      acsApiService.initAcsInfo();
 
       return new BasicResponse("Success", "Received all City State Information");
     }
