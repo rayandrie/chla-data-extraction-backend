@@ -1,4 +1,4 @@
-package com.example.filedemo.response.acs.wrapper;
+package com.example.filedemo.response.acs;
 
 public class AcsStateObject {
   private String stateName;
