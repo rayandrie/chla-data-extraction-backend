@@ -2,14 +2,18 @@
 
 function onPageLoad() {
   // Get all the State Code Information from ACS
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "/getAcsCityStateInfo");
-
-  xhr.onload = function() {
-    console.log(xhr.responseText);
-  }
-
-  xhr.send();
+  $.ajax({
+    url: '/getAcsCityStateInfo',
+    type: 'GET',
+    dataType: 'json',
+    success: function(data) {
+      console.log("Status ", data.status);
+      console.log("Message ", data.message);
+    },
+    error: function(request, error) {
+      console.log(error);
+    }
+  });
 }
 
 function uploadSingleFile(file) {
