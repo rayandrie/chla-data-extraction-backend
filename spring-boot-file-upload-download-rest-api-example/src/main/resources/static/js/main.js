@@ -6,9 +6,10 @@ function onPageLoad() {
     url: '/getAcsCityStateInfo',
     type: 'GET',
     dataType: 'json',
+    contentType: "application/json;charset=utf-8",
     success: function(data) {
-      console.log("Status ", data.status);
-      console.log("Message ", data.message);
+      console.log("Status: ", data.status);
+      console.log("Message: ", data.message);
     },
     error: function(request, error) {
       console.log(error);
