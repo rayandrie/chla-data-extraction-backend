@@ -2,6 +2,7 @@ package com.example.filedemo.controller;
 
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.UploadFileResponse;
+import com.example.filedemo.request.AcsVariablesRequest;
 import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.FileStorageService;
 import org.slf4j.Logger;
@@ -31,14 +32,27 @@ public class FileController {
 
     @GetMapping("/testing")
     public BasicResponse testing() {
-      return new BasicResponse("Success", "Hit /testing endpoint");
+      return new BasicResponse(201, "Success", "Hit /testing endpoint");
     }
 
     @GetMapping("/getAcsCityStateInfo")
     public BasicResponse getAcsCityStateInfo() {
       acsApiService.initAcsInfo();
 
-      return new BasicResponse("Success", "Received all City State Information");
+      return new BasicResponse(201, "Success", "Received all City State Information");
+    }
+
+    @PostMapping("/appendACSVariables")
+    public BasicResponse appendACSVariables(@RequestBody AcsVariablesRequest req) {
+      // Make a request to the ACS API
+      System.out.println("HEHROHOURHRURR");
+      if (req.detailedVariablesIsEmpty() && req.subjectVariablesIsEmpty()) {
+        return new BasicResponse(404, "Failure", "Variable Lists empty, no Request can be made.");
+      } else {
+        acsApiService.makeAcsGetRequest(req);
+      }
+
+      return new BasicResponse(201, "Success", "Successfully made ACS Request.");
     }
 
     @PostMapping("/uploadFile")

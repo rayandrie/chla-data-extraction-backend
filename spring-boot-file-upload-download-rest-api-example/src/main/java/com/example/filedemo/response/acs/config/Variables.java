@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Variables {
-  // ACS 5 Year Estimate Subject Table
-  public static final Map<String, String> SUBJECT_VAR_ID_BY_NAME;
+  // ACS 5 Year Estimate Table Map
+  public static final Map<String, String> VAR_ID_BY_NAME;
   static {
     Map<String, String> map = new HashMap<String, String>();
     // S0101
@@ -75,17 +75,11 @@ public class Variables {
     map.put("% Distribution - Grandparents living with own grandchildren under 18 years in households", "S1002_C02_001E");
     map.put("% Distribution - Householder/Spouse responsible for grandchildren with no parent present", "S1002_C02_028E");
     map.put("% Distribution - Households with grandparents living with grandchildren", "S1002_C02_030E");
-    SUBJECT_VAR_ID_BY_NAME = Collections.unmodifiableMap(map);
-  }
-
-  // ACS 5 Year Estimate Detailed Table
-  public static final Map<String, String> DETAILED_VAR_ID_BY_NAME;
-  static {
-    Map<String, String> map = new HashMap<String, String>();
     // B25071
     map.put("Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent", "B25071_001E");
     // B19083
     map.put("GINI Index of Income Inequality Households", "B19083_001E");
-    DETAILED_VAR_ID_BY_NAME = Collections.unmodifiableMap(map);
+    VAR_ID_BY_NAME = Collections.unmodifiableMap(map);
   }
+  
 }
