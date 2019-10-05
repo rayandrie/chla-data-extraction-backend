@@ -20,16 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
 public class AcsApiService {
   // API Key
   private final String ACS_API_KEY = "c28b7e5f2f3f178a55f8a17d91094ca44216fe39";
-
-  // ACS Tables
-  private final String SUBJECT_TABLE = "SUBJECT";
-  private final String DETAILED_TABLE = "DETAILED";
 
   // URL Paths
   private final String BASE_URL_ACS_DETAILED = "https://api.census.gov/data/2017/acs/acs5";
@@ -62,7 +59,7 @@ public class AcsApiService {
   // This function should be called on page load on the client-side
   public void initAcsInfo() {
     // Get all city state codes
-    // getAllStates();
+    getAllStates();
   }
 
   // Makes a GET Request to the ACS API to get variable info
@@ -110,15 +107,22 @@ public class AcsApiService {
 
   // Parse the response from the ACS API
   private Map<String, List<ImmutablePair<String, String> > > parseAcsResponse(String query, Map<String, List<ImmutablePair<String, String> > > allVariablesByState) {
+    // Empty query, do nothing
     if (query.equals("")) {
       return allVariablesByState;
     }
 
     String[][] queryResp;
-    queryResp = restService.getForObject(
-      query,
-      String[][].class
-    );
+    try {
+      queryResp = restService.getForObject(
+        query,
+        String[][].class
+      );
+    } catch (HttpStatusCodeException exception) {
+      System.out.println("Status Code Error: " + exception.getRawStatusCode());
+      System.out.println("Error Msg: " + exception.getStatusText());
+      return null;
+    }
 
     for (int i = 1; i < queryResp.length; i++) {
       // Create a new List of Name-Value Pairs for each State
@@ -142,12 +146,12 @@ public class AcsApiService {
         }
       }
 
-      // Add new State if it doesn't exist already
+      // Add new State to the Map if it doesn't exist already
       if (allVariablesByState.containsKey(curr[0])) {
         List<ImmutablePair<String, String> > existingVarList = allVariablesByState.get(curr[0]);
         existingVarList.addAll(varList);
       } else {
-        // No State Key present, so just add it
+        // No State Key present, so just add it to the Map
         allVariablesByState.put(curr[0], varList);
       }
     }
@@ -178,10 +182,18 @@ public class AcsApiService {
 
   // Makes an API Call to get the City State Info
   private void getAllStates() {
-    String[][] cityStatesResp = restService.getForObject(
-      URL_GET_STATE_INFO,
-      String[][].class
-    );
+    String[][] cityStatesResp;
+    try {
+      cityStatesResp = restService.getForObject(
+        URL_GET_STATE_INFO,
+        String[][].class
+      );
+    } catch (HttpStatusCodeException exception) {
+      System.out.println("Status Code Error: " + exception.getRawStatusCode());
+      System.out.println("Error Msg: " + exception.getStatusText());
+      return;
+    }
+
     getCityStatesByStateName(cityStatesResp);
     
     // Print out States Map

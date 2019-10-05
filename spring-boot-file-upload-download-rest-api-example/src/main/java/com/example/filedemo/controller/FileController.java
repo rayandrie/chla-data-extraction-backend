@@ -44,13 +44,12 @@ public class FileController {
 
     @PostMapping("/appendACSVariables")
     public BasicResponse appendACSVariables(@RequestBody AcsVariablesRequest req) {
-      // Make a request to the ACS API
-      System.out.println("HEHROHOURHRURR");
+      // Make a request to the ACS API if there are variables to be searched for
       if (req.detailedVariablesIsEmpty() && req.subjectVariablesIsEmpty()) {
         return new BasicResponse(404, "Failure", "Variable Lists empty, no Request can be made.");
-      } else {
-        acsApiService.makeAcsGetRequest(req);
       }
+
+      acsApiService.makeAcsGetRequest(req);
 
       return new BasicResponse(201, "Success", "Successfully made ACS Request.");
     }
