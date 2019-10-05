@@ -18,11 +18,11 @@ function onPageLoad() {
 
   // Sample POST Call
   let data = {
-    "listOfDetailedVariables": [
+    listOfDetailedVariables: [
       'Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent',
       'GINI Index of Income Inequality Households'
     ],
-    "listOfSubjectVariables": [
+    listOfSubjectVariables: [
       '% of Total Population - Under 5 Years',
       '% of Total Households, Renter-Occupied - Household Size'
     ]
