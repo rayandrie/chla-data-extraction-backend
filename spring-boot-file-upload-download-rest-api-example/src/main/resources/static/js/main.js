@@ -106,24 +106,28 @@ var multipleFileUploadInput = document.querySelector('#multipleFileUploadInput')
 var multipleFileUploadError = document.querySelector('#multipleFileUploadError');
 var multipleFileUploadSuccess = document.querySelector('#multipleFileUploadSuccess');
 
-var testButton = document.querySelector('#tester');
+// var testButton = document.querySelector('#tester');
 
 onPageLoad();
 
-testButton.addEventListener('click', function(event) {
-  console.log("Clicked Test Button!");
+// testButton.addEventListener('click', function(event) {
+//   console.log("Clicked Test Button!");
 
-  event.preventDefault();
-});
+//   event.preventDefault();
+// });
 
 singleUploadForm.addEventListener('submit', function(event){
+  console.log("ONSUBMIT CLICKED");
     var files = singleFileUploadInput.files;
     if(files.length === 0) {
-        singleFileUploadError.innerHTML = "Please select a file";
+        singleFileUploadError.innerHTML = "Please SELECT a file";
+        console.log("DIDN'T SELECT FILE");
         singleFileUploadError.style.display = "block";
     }
     uploadSingleFile(files[0]);
     event.preventDefault();
+    window.location.href = "step4.html";
+
 }, true);
 
 
