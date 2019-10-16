@@ -4,7 +4,10 @@
     box-sizing: border-box;
 }
 
-body {
+/* body {
+    height: 50%;
+    width: 100%;
+    position: absolute;
     margin: 0;
     padding: 0;
     font-weight: 400;
@@ -15,7 +18,36 @@ body {
     background-color: #f4f4f4;
 }
 
-body:before {
+html {
+    height: 100%;
+    width: 100%;
+  } */
+
+html, body{
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-weight: 400;
+    font-family: "Roboto", sans-serif;
+    font-size: 1rem;
+    line-height: 1.58;
+    color: #333;
+}
+
+.row1 {
+    height: 50%;
+    background-color: #128ff2;
+    padding: 20px;
+
+  }
+
+.row2 {
+    height: 50%;
+    background-color: #ddd;
+  }
+
+
+/* body:before {
     height: 50%;
     width: 100%;
     position: absolute;
@@ -24,7 +56,7 @@ body:before {
     background: #128ff2;
     content: "";
     z-index: 0;
-}
+} */
 
 .clearfix:after {
     display: block;
@@ -99,14 +131,34 @@ input[type="file"] {
     }
 }
 
+.step{
+    font-weight: lighter;
+    font-size: 60px;
+}
+
+.text-container1{
+    max-width: 1050px;
+    margin-left: auto;
+    margin-right: auto;
+    color: white;
+}
+
+.text-container2{
+    max-width: 1050px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #128ff2;
+    padding-top: 20px;
+
+}
 
 .upload-container {
-      max-width: 750px;
+      max-width: 1050px;
       margin-left: auto;
       margin-right: auto;
       background-color: #fff;
       box-shadow: 0 1px 11px rgba(0, 0, 0, 0.27);
-      margin-top: 60px;
+      /* //margin-top: 60px; */
       min-height: 400px;
       position: relative;
       padding: 20px;
@@ -129,4 +181,63 @@ input[type="file"] {
 .upload-response {
     overflow-x: hidden;
     word-break: break-all;
+    background-color: black;
+}
+
+.description{
+    font-size:24px;
+    font-weight: 100;
+}
+
+.dropdown {
+    float: left;
+    overflow: hidden;
+  }
+  
+  .dropdown .dropbtn {
+    font-size: 16px;  
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: #128ff2;
+    font-family: inherit;
+    margin-right: 40px;
+  }
+  
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+  }
+  
+  .dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+  }
+  
+  .dropdown-content a:hover {
+    background-color: #ddd;
+  }
+  
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+
+
+#csv-rules{
+    color:white;
+    font-weight: bold;
+}
+
+#contact{
+    color:white;
 }

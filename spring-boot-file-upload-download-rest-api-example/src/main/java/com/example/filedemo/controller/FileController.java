@@ -3,8 +3,11 @@ package com.example.filedemo.controller;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.UploadFileResponse;
 import com.example.filedemo.request.AcsVariablesRequest;
+import com.example.filedemo.request.SsdiRequest;
+import com.example.filedemo.response.jewishgen.SsdiObject;
 import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.FileStorageService;
+import com.example.filedemo.service.SsdiService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +23,10 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*; 
+import java.util.List;
 
 @RestController
 public class FileController {
@@ -36,9 +39,19 @@ public class FileController {
     @Autowired
     private AcsApiService acsApiService;
 
+    @Autowired
+    private SsdiService ssdiService;
+
     @GetMapping("/testing")
     public BasicResponse testing() {
       return new BasicResponse(201, "Success", "Hit /testing endpoint");
+    }
+
+    @PostMapping("/getSsdiInfo")
+    public List<SsdiObject> getSsdiInfo(@RequestBody SsdiRequest req) {
+      List<SsdiObject> response = ssdiService.getRecordsByName(req.getFirstName(), req.getLastName());
+
+      return response;
     }
 
     @GetMapping("/getAcsCityStateInfo")
