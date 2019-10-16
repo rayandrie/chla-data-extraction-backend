@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Variables {
+
   // ACS 5 Year Estimate Table Map
   public static final Map<String, String> VAR_ID_BY_NAME;
   static {

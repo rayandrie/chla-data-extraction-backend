@@ -5,6 +5,7 @@ import com.example.filedemo.payload.UploadFileResponse;
 import com.example.filedemo.request.AcsVariablesRequest;
 import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.FileStorageService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +16,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.*; 
 
 @RestController
 public class FileController {
@@ -48,8 +54,6 @@ public class FileController {
       if (req.detailedVariablesIsEmpty() && req.subjectVariablesIsEmpty()) {
         return new BasicResponse(404, "Failure", "Variable Lists empty, no Request can be made.");
       }
-
-      acsApiService.makeAcsGetRequest(req);
 
       return new BasicResponse(201, "Success", "Successfully made ACS Request.");
     }
@@ -84,6 +88,46 @@ public class FileController {
         if(contentType == null) {
             contentType = "application/octet-stream";
         }
+
+        //append acs data to user's file - using example query first
+         String parameter = "GINI Index of Income Inequality Households";  //get from front end later
+         AcsVariablesRequest req = new AcsVariablesRequest();
+         String[] listOfDetailedVariables = {parameter};
+         req.setListOfDetailedVariables(listOfDetailedVariables);
+
+         //set subject list to empty bc it is a detailed query - will need to differentiate later
+         String[] listOfSubjectVariables = {};
+         req.setListOfSubjectVariables(listOfSubjectVariables);
+
+         Map<String, List<ImmutablePair<String, String> > > results = acsApiService.makeAcsGetRequest(req); 
+         if (results != null) {
+          System.out.println(results);
+         }
+
+         //write the results data to csv - just write it to file for now
+         try {
+          FileWriter writer = new FileWriter(resource.getFile(), false); 
+
+          //TODO: need to rewrite all the user data back into file
+         
+          //define column headers here 
+          writer.append("State");     //user will already have this inputted
+          writer.append(","); 
+          writer.append(parameter);
+          writer.append(","); 
+          writer.append("\n"); 
+
+          //add API info to this column
+          for (Map.Entry<String, List<ImmutablePair<String, String>>> entry : results.entrySet()) {
+            writer.append(String.join(",", entry.getKey(), entry.getValue().get(0).right));
+            writer.write(System.getProperty("line.separator"));
+          }
+
+        	writer.flush();
+        	writer.close();
+         }catch (IOException e) { 
+             e.printStackTrace(); 
+         } 
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))

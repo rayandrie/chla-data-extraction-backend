@@ -63,7 +63,8 @@ public class AcsApiService {
   }
 
   // Makes a GET Request to the ACS API to get variable info
-  public void makeAcsGetRequest(AcsVariablesRequest req) {
+  public Map<String, List<ImmutablePair<String, String> > > makeAcsGetRequest(AcsVariablesRequest req) {
+
     String subjectQuery = generateAcsQuery(BASE_URL_ACS_SUBJECT, req.getListOfSubjectVariables());
     System.out.println("Subject Query: " + subjectQuery);
     String detailedQuery = generateAcsQuery(BASE_URL_ACS_DETAILED, req.getListOfDetailedVariables());
@@ -74,10 +75,13 @@ public class AcsApiService {
     allVariablesByState = parseAcsResponse(subjectQuery, allVariablesByState);
     allVariablesByState = parseAcsResponse(detailedQuery, allVariablesByState);
 
+
     // Now, allVariablesByState has the information the user asked for
-    if (allVariablesByState != null) {
-      System.out.println(allVariablesByState);
-    }
+    // if (allVariablesByState != null) {
+    //   System.out.println(allVariablesByState);
+    // }
+
+    return allVariablesByState;
   }
 
   // Generate the ACS Query
@@ -102,6 +106,9 @@ public class AcsApiService {
     // Create full query and return
     String fullQuery = baseUrl + "?" + getParam + "&" + stateParam + "&key=" + ACS_API_KEY;
 
+    //sample query for subject: 
+    // https://api.census.gov/data/2017/acs/acs5/subject?get=NAME,S0101_C02_002E&for=state:*&key=c28b7e5f2f3f178a55f8a17d91094ca44216fe39
+    
     return fullQuery;
   }
 
@@ -197,10 +204,10 @@ public class AcsApiService {
     getCityStatesByStateName(cityStatesResp);
     
     // Print out States Map
-    for (Map.Entry<String, AcsStateObject> entry : statesByName.entrySet()) {
-      System.out.println("Key = " + entry.getKey() 
-        + ", Value = " + entry.getValue().toString());
-    }
+    // for (Map.Entry<String, AcsStateObject> entry : statesByName.entrySet()) {
+    //   System.out.println("Key = " + entry.getKey() 
+    //     + ", Value = " + entry.getValue().toString());
+    // }
   }
 
   // Helper function to get City State Codes
