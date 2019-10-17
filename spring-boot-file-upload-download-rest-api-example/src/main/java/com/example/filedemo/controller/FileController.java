@@ -32,6 +32,8 @@ import java.util.List;
 public class FileController {
 
     private static final Logger logger = LoggerFactory.getLogger(FileController.class);
+    private String filename;
+    MultipartFile file;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -74,6 +76,8 @@ public class FileController {
     @PostMapping("/uploadFile")
     public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
         String fileName = fileStorageService.storeFile(file);
+        this.file = file;
+        filename = fileName;
 
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/downloadFile/")
@@ -82,6 +86,45 @@ public class FileController {
 
         return new UploadFileResponse(fileName, fileDownloadUri,
                 file.getContentType(), file.getSize());
+    }
+
+    @PostMapping("/returnDownloadFile")
+    public UploadFileResponse returnDownloadFile() {
+
+      String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/downloadFile/")
+                .path(filename)
+                .toUriString();
+
+        return new UploadFileResponse(filename, fileDownloadUri,
+                file.getContentType(), file.getSize());
+    }
+
+    public void populateCSV(Resource resource, String parameter, Map<String, List<ImmutablePair<String, String> > > results) {
+            //write the results data to csv - just write it to file for now
+            try {
+              FileWriter writer = new FileWriter(resource.getFile(), false); 
+    
+              //TODO: need to rewrite all the user data back into file
+             
+              //define column headers here 
+              writer.append("State");     //user will already have this inputted
+              writer.append(","); 
+              writer.append(parameter);
+              writer.append(","); 
+              writer.append("\n"); 
+    
+              //add API info to this column
+              for (Map.Entry<String, List<ImmutablePair<String, String>>> entry : results.entrySet()) {
+                writer.append(String.join(",", entry.getKey(), entry.getValue().get(0).right));
+                writer.write(System.getProperty("line.separator"));
+              }
+    
+              writer.flush();
+              writer.close();
+             }catch (IOException e) { 
+                 e.printStackTrace(); 
+             } 
     }
 
     @GetMapping("/downloadFile/{fileName:.+}")
@@ -117,31 +160,8 @@ public class FileController {
           System.out.println(results);
          }
 
-         //write the results data to csv - just write it to file for now
-         try {
-          FileWriter writer = new FileWriter(resource.getFile(), false); 
-
-          //TODO: need to rewrite all the user data back into file
-         
-          //define column headers here 
-          writer.append("State");     //user will already have this inputted
-          writer.append(","); 
-          writer.append(parameter);
-          writer.append(","); 
-          writer.append("\n"); 
-
-          //add API info to this column
-          for (Map.Entry<String, List<ImmutablePair<String, String>>> entry : results.entrySet()) {
-            writer.append(String.join(",", entry.getKey(), entry.getValue().get(0).right));
-            writer.write(System.getProperty("line.separator"));
-          }
-
-        	writer.flush();
-        	writer.close();
-         }catch (IOException e) { 
-             e.printStackTrace(); 
-         } 
-
+         populateCSV(resource, parameter, results);
+   
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")

@@ -18,8 +18,10 @@
             <h1 class="step">Step 4:</h1>
             <h2>SUCCESS! YOU CAN DOWNLOAD A NEW CSV WITH YOUR QUERY RESULTS BY
                 CLICKING THE LINK BELOW.</h2>
-            <button type="submit" href="js/main.js" download="proposed_file_name">
-                <a href="js/main.js" download="proposed_file_name">Download</a>
+
+            <!-- return populated file - download file button -->
+            <button id= "download">
+                <a target='_blank' id = "downloadLink">Download</a>
             </button>
             <p class="description">Something wrong? Make sure you formatted your file correctly. Still having trouble?
                 Check out our <a id="contact" href='http://www.google.com'>FAQ</a>. Still struggling? Try contacting a
@@ -44,7 +46,7 @@
             </div>
         </div>
     </div>
-    <script src="/js/main.js"></script>
+    <script src="/js/step4.js"></script>
 </body>
 
 </html>
