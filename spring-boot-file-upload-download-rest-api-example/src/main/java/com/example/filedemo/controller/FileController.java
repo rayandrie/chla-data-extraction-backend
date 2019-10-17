@@ -3,9 +3,12 @@ package com.example.filedemo.controller;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.UploadFileResponse;
 import com.example.filedemo.request.AcsVariablesRequest;
+import com.example.filedemo.request.BmiInfoRequest;
 import com.example.filedemo.request.SsdiRequest;
 import com.example.filedemo.response.jewishgen.SsdiObject;
+import com.example.filedemo.response.zscore.BmiInfoResponse;
 import com.example.filedemo.service.AcsApiService;
+import com.example.filedemo.service.BmiService;
 import com.example.filedemo.service.FileStorageService;
 import com.example.filedemo.service.SsdiService;
 
@@ -44,9 +47,19 @@ public class FileController {
     @Autowired
     private SsdiService ssdiService;
 
+    @Autowired
+    private BmiService bmiService;
+
     @GetMapping("/testing")
     public BasicResponse testing() {
       return new BasicResponse(201, "Success", "Hit /testing endpoint");
+    }
+
+    @PostMapping("/getBmiInfo")
+    public BmiInfoResponse getBmiInfo(@RequestBody BmiInfoRequest req) {
+      BmiInfoResponse res = bmiService.getBmiInfo(req);
+
+      return res;
     }
 
     @PostMapping("/getSsdiInfo")
