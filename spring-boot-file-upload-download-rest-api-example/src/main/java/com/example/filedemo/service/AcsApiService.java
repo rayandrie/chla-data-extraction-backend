@@ -104,7 +104,8 @@ public class AcsApiService {
     String stateParam = "for=state:*";
     
     // Create full query and return
-    String fullQuery = baseUrl + "?" + getParam + "&" + stateParam + "&key=" + ACS_API_KEY;
+    String fullQuery = baseUrl + "?" + getParam + "&" + stateParam;
+    // + "&key=" + ACS_API_KEY;
 
     //sample query for subject: 
     // https://api.census.gov/data/2017/acs/acs5/subject?get=NAME,S0101_C02_002E&for=state:*&key=c28b7e5f2f3f178a55f8a17d91094ca44216fe39
