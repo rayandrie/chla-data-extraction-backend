@@ -23,10 +23,14 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*; 
 import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;;
 
 @RestController
 public class FileController {
@@ -100,23 +104,55 @@ public class FileController {
                 file.getContentType(), file.getSize());
     }
 
-    public void populateCSV(Resource resource, String parameter, Map<String, List<ImmutablePair<String, String> > > results) {
+    //take current user inputted csv and converts it into an ArrayList<String>
+    public List<String> csvtoList(Resource resource) {
+      List<String> content = Collections.emptyList();
+      try {
+        Path path = Paths.get(resource.getURI());
+        content = Files.readAllLines(path);
+
+        for (String line : content) {
+          System.out.println(line);
+        }
+
+      } catch (IOException e) {
+        System.out.println(e);
+      }
+
+      return content;
+    }
+
+    public void populateCSV(Resource resource, ArrayList<String> parameters, Map<String, List<ImmutablePair<String, String> > > results, List<String> content) {
             //write the results data to csv - just write it to file for now
             try {
               FileWriter writer = new FileWriter(resource.getFile(), false); 
-    
-              //TODO: need to rewrite all the user data back into file
              
-              //define column headers here 
-              writer.append("State");     //user will already have this inputted
+              //add new parameters - define column headers here 
+              writer.append("State");     
               writer.append(","); 
-              writer.append(parameter);
-              writer.append(","); 
+              
+              //for all parameters, add a column for each
+              for (String parameter : parameters) {
+                writer.append(parameter);
+                writer.append(","); 
+              }
+              
               writer.append("\n"); 
-    
-              //add API info to this column
+
+              //combine user inputted content with API results 
+              ArrayList<ArrayList<String>> csv = new ArrayList<>();
+            
               for (Map.Entry<String, List<ImmutablePair<String, String>>> entry : results.entrySet()) {
-                writer.append(String.join(",", entry.getKey(), entry.getValue().get(0).right));
+                ArrayList<String> line = new ArrayList<>();
+                if (content.contains(entry.getKey())) {
+                  line.add(entry.getKey());
+                  line.add(entry.getValue().get(0).right); // this only gets one parameter?
+                  csv.add(line);
+                }
+              }
+
+              for (ArrayList<String> al : csv) {
+                writer.append(String.join(",", al));
                 writer.write(System.getProperty("line.separator"));
               }
     
@@ -125,6 +161,37 @@ public class FileController {
              }catch (IOException e) { 
                  e.printStackTrace(); 
              } 
+    }
+
+    //ACS specific - split parameters into detailed and subject 
+    public AcsVariablesRequest splitACSVars(ArrayList<String> parameters) {
+
+      //TOOD for each parameter check if in detailed or subject 
+
+
+      AcsVariablesRequest req = new AcsVariablesRequest();
+      Object[] parametersArray = parameters.toArray(); 
+      String[] listOfDetailedVariables = Arrays.copyOf(parametersArray, parametersArray.length, String[].class);
+      req.setListOfDetailedVariables(listOfDetailedVariables);    
+
+      //set subject list to empty bc it is a detailed query - will need to differentiate later
+      String[] listOfSubjectVariables = {};
+      req.setListOfSubjectVariables(listOfSubjectVariables);
+
+      return req;
+    }
+
+    //process the acs database queries
+    public void acs(Resource resource, ArrayList<String> parameters, List<String> content) {
+        
+        AcsVariablesRequest req = splitACSVars(parameters);
+
+        Map<String, List<ImmutablePair<String, String> > > results = acsApiService.makeAcsGetRequest(req); 
+        if (results != null) {
+          System.out.println(results);
+        }
+
+      populateCSV(resource, parameters, results, content);
     }
 
     @GetMapping("/downloadFile/{fileName:.+}")
@@ -145,23 +212,15 @@ public class FileController {
             contentType = "application/octet-stream";
         }
 
+        //copies current data in csv back into csv (avoids formatting errors)
+        List<String> content = csvtoList(resource);
+
         //append acs data to user's file - using example query first
-         String parameter = "GINI Index of Income Inequality Households";  //get from front end later
-         AcsVariablesRequest req = new AcsVariablesRequest();
-         String[] listOfDetailedVariables = {parameter};
-         req.setListOfDetailedVariables(listOfDetailedVariables);
+        ArrayList<String> parameters = new ArrayList<>();
+        parameters.add("GINI Index of Income Inequality Households");
+        
+        acs(resource, parameters, content);
 
-         //set subject list to empty bc it is a detailed query - will need to differentiate later
-         String[] listOfSubjectVariables = {};
-         req.setListOfSubjectVariables(listOfSubjectVariables);
-
-         Map<String, List<ImmutablePair<String, String> > > results = acsApiService.makeAcsGetRequest(req); 
-         if (results != null) {
-          System.out.println(results);
-         }
-
-         populateCSV(resource, parameter, results);
-   
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
