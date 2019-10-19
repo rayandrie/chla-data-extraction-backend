@@ -68,6 +68,32 @@ function onPageLoad() {
     data: dataSsdi,
     contentType: "application/json;charset=utf-8",
     success: function(data) {
+      console.log("SSDI INFO: ");
+      console.log(data);
+    },
+    error: function(request, error) {
+      console.log(error);
+    }
+  });
+
+  let dataBmi = {
+    weight: "70",
+    weightMetric: "kg",
+    height: "180",
+    heightMetric: "cm",
+    gender: "male",
+    dob: "08/04/2000",
+    officeVisitDate: "08/04/2019",
+  }
+  dataBmi = JSON.stringify(dataBmi);
+
+  $.ajax({
+    url: '/getBmiInfo',
+    method: 'POST',
+    data: dataBmi,
+    contentType: "application/json;charset=utf-8",
+    success: function(data) {
+      console.log("BMI DATA: ");
       console.log(data);
     },
     error: function(request, error) {
