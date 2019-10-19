@@ -125,7 +125,6 @@ public class FileController {
     ArrayList<String> records = new ArrayList<>();
     try (BufferedReader br = new BufferedReader(new FileReader(resource.getFile()))) {
       String line;
-
       while ((line = br.readLine()) != null) {
         records.add(line);
       }
