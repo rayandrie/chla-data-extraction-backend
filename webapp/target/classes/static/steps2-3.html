@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Public Databases</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <noscript>
+        <h2>Sorry! Your browser doesn't support Javascript</h2>
+    </noscript>
+    <div class="row1">
+        <div class="text-container1">
+            <h1 class="step">Step 2:</h1>
+            <h2>FORMAT YOUR CSV FILE APPROPRIATELY.</h2>
+            <p class = "description">You selected ACS database. To run a batch query, you will have to create a .csv file in
+                <a id = "csv-rules" href='http://www.google.com'>this format</a>. You can create a
+                CSV file from Excel and other spreadsheet programs by going to the file menu for your
+                spreadsheet, and saving a copy as a .csv.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="row2">
+        <div class="text-container2">
+            <div class="upload-header">
+                <h1 class="step">Step 3:</h1>
+            </div>
+            <div class="upload-content">
+                <div class="single-upload">
+                    <h3>UPLOAD YOUR CSV HERE: </h3>
+                    <form id="singleUploadForm" name="singleUploadForm">
+                        <input id="singleFileUploadInput" type="file" name="file" class="file-input" required />
+                        <button type="submit" class="primary submit-btn">Submit</button>
+                    </form>
+                    <div class="upload-response">
+                        <div id="singleFileUploadError"></div>
+                        <div id="singleFileUploadSuccsess"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/main.js"></script>
+</body>
+
+</html>
