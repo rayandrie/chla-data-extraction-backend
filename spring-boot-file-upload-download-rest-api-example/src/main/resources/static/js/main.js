@@ -29,13 +29,6 @@ var singleFileUploadError = document.querySelector('#singleFileUploadError');
 var singleFileUploadSuccess = document.querySelector('#singleFileUploadSuccess');
 var download = document.querySelector('#download');
 
-// var testButton = document.querySelector('#tester');
-
-// testButton.addEventListener('click', function(event) {
-//   console.log("Clicked Test Button!");
-
-//   event.preventDefault();
-// });
 
 singleUploadForm.addEventListener('submit', function(event){
   console.log("ONSUBMIT CLICKED");
