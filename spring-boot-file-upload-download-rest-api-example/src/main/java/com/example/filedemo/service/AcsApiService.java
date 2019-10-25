@@ -1,13 +1,13 @@
 package com.example.filedemo.service;
 
 import java.io.IOException;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.example.filedemo.request.AcsVariablesRequest;
-import com.example.filedemo.response.acs.AcsStateObject;
 import com.example.filedemo.response.acs.config.Variables;
 import com.example.filedemo.response.acs.wrapper.AcsVariableObject;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -46,20 +46,15 @@ public class AcsApiService {
   private RestTemplate restService;
   private ObjectMapper mapper;
 
-  // ACS Variables
-  private Map<String, AcsStateObject> statesByName;
-
   @Autowired
   public AcsApiService() {
     restService = new RestTemplate();
     mapper = new ObjectMapper();
-    statesByName = new HashMap<String, AcsStateObject>();
   }
 
-  // This function should be called on page load on the client-side
-  public void initAcsInfo() {
-    // Get all city state codes
-    getAllStates();
+  // Using the temporary CSV File with only address information, get a new file with the Batch Geocoding Information which include Census Tracts
+  public void getCensusTracts(File file) {
+    
   }
 
   // Makes a GET Request to the ACS API to get variable info
@@ -77,9 +72,9 @@ public class AcsApiService {
 
 
     // Now, allVariablesByState has the information the user asked for
-    // if (allVariablesByState != null) {
-    //   System.out.println(allVariablesByState);
-    // }
+    if (allVariablesByState != null) {
+      System.out.println(allVariablesByState);
+    }
 
     return allVariablesByState;
   }
@@ -187,49 +182,4 @@ public class AcsApiService {
 
     return map;
   }
-
-  // Makes an API Call to get the City State Info
-  private void getAllStates() {
-    String[][] cityStatesResp;
-    try {
-      cityStatesResp = restService.getForObject(
-        URL_GET_STATE_INFO,
-        String[][].class
-      );
-    } catch (HttpStatusCodeException exception) {
-      System.out.println("Status Code Error: " + exception.getRawStatusCode());
-      System.out.println("Error Msg: " + exception.getStatusText());
-      return;
-    }
-
-    getCityStatesByStateName(cityStatesResp);
-    
-    // Print out States Map
-    // for (Map.Entry<String, AcsStateObject> entry : statesByName.entrySet()) {
-    //   System.out.println("Key = " + entry.getKey() 
-    //     + ", Value = " + entry.getValue().toString());
-    // }
-  }
-
-  // Helper function to get City State Codes
-  private Map<String, AcsStateObject> getCityStatesByStateName(String[][] listStates) {
-    if (listStates.length == 0) {
-      return null;
-    }
-
-    // Parse Response to Map
-    for (int i = 0; i < listStates.length; i++) {
-      if (i == 0) continue;
-
-      String stateName = listStates[i][0];
-      String population = listStates[i][1];
-      String date = listStates[i][2];
-      String stateCode = listStates[i][3];
-      AcsStateObject stateInfo = new AcsStateObject(stateName, population, date, stateCode);
-      statesByName.put(stateName, stateInfo);
-    }
-
-    return statesByName;
-  }
-
 }

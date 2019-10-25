@@ -6,15 +6,20 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.example.filedemo.payload.BasicResponse;
+import com.example.filedemo.payload.RequiredVariablesResponse;
 import com.example.filedemo.payload.UploadFileResponse;
 import com.example.filedemo.request.AcsVariablesRequest;
 import com.example.filedemo.request.BmiInfoRequest;
+import com.example.filedemo.request.ChosenVariablesRequest;
 import com.example.filedemo.request.SsdiRequest;
 import com.example.filedemo.response.acs.config.Variables;
 import com.example.filedemo.response.jewishgen.SsdiObject;
@@ -49,6 +54,8 @@ public class FileController {
   private String filename;
   MultipartFile file;
 
+  private ChosenVariablesRequest chosenVariablesRequest = null;
+
   @Autowired
   private FileStorageService fileStorageService;
 
@@ -80,13 +87,6 @@ public class FileController {
     return response;
   }
 
-  @GetMapping("/getAcsCityStateInfo")
-  public BasicResponse getAcsCityStateInfo() {
-    acsApiService.initAcsInfo();
-
-    return new BasicResponse(201, "Success", "Received all City State Information");
-  }
-
   @PostMapping("/appendACSVariables")
   public BasicResponse appendACSVariables(@RequestBody AcsVariablesRequest req) {
     if (req.detailedVariablesIsEmpty() && req.subjectVariablesIsEmpty()) {
@@ -99,8 +99,60 @@ public class FileController {
     return new BasicResponse(201, "Success", "Successfully made ACS Request.");
   }
 
+  /* 
+    POST Endpoint for User to choose variables he/she wants for his/her CSV File. 
+    Response will be a list of variables user will need to include in his/her initial 
+    CSV File that he/she uploads. (TEST THIS)
+  */
+  @PostMapping("/chooseVariables")
+  public RequiredVariablesResponse chooseVariables(@RequestBody ChosenVariablesRequest req) {
+    if (req == null) {
+      return new RequiredVariablesResponse(501, "Internal Server Error", "Request is null", null);
+    }
+
+    // Save the variables that user requested, so that we can use it later when the user uploads file
+    chosenVariablesRequest = req; // Need deep copy?
+
+    Set<String> requiredVars = new HashSet<String>();
+
+    // Analyze the variables that the user requested, and return a response of corresponding information that the user needs to put in his/her CSV file
+
+    // Check whether User wants ACS Params
+    if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+      requiredVars.add("Address");
+      requiredVars.add("City");
+      requiredVars.add("State (Abbreviation Format)");
+      requiredVars.add("Zip Code");
+    }
+    // Check whether User wants SSDI Params
+    if (chosenVariablesRequest.isRequestedSsdiInfo()) {
+      requiredVars.add("First Name");
+      requiredVars.add("Middle Initial");
+      requiredVars.add("Last Name");
+      requiredVars.add("Date of Birth (MM/DD/YYYY)");
+    }
+    // Check whether User wants BMI Params
+    if (chosenVariablesRequest.isRequestedBmiInfo()) {
+      requiredVars.add("Height (cm)");
+      requiredVars.add("Weight (kg)");
+      requiredVars.add("Gender ('male' or 'female')");
+      requiredVars.add("Date of Birth (MM/DD/YYYY)");
+      requiredVars.add("Date of Measurement");
+    }
+
+    Object[] requiredVarsArr = requiredVars.toArray();
+    String[] stringArray = Arrays.copyOf(requiredVarsArr, requiredVarsArr.length, String[].class);
+
+    RequiredVariablesResponse requiredVariablesResponse = new RequiredVariablesResponse(201, "Success", "User will need to have the following variables in the CSV File that they want to upload, in the format mentioned in the parentheses (if applicable) for each variable.", stringArray);
+
+    return requiredVariablesResponse;
+  }
+
   @PostMapping("/uploadFile")
   public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
+    
+    // TODO: Validate File?
+
     String fileName = fileStorageService.storeFile(file);
     this.file = file;
     filename = fileName;
@@ -108,11 +160,17 @@ public class FileController {
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
 
+    // TODO: Need to create the 2nd CSV file that only has address, city, state and zipcode so that we can get census tract from user. Store in fileStorageService as well?
+
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
   }
 
   @PostMapping("/returnDownloadFile")
   public UploadFileResponse returnDownloadFile() {
+
+    // Now the user wants to download the file with the variables he/she has chosen previously. Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
+
+    // ACS Database Request
 
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(filename)
         .toUriString();
