@@ -1,6 +1,7 @@
 package com.example.filedemo.controller;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -14,6 +15,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.RequiredVariablesResponse;
 import com.example.filedemo.payload.UploadFileResponse;
@@ -87,18 +89,6 @@ public class FileController {
     return response;
   }
 
-  @PostMapping("/appendACSVariables")
-  public BasicResponse appendACSVariables(@RequestBody AcsVariablesRequest req) {
-    if (req.detailedVariablesIsEmpty() && req.subjectVariablesIsEmpty()) {
-      return new BasicResponse(404, "Failure", "Variable Lists empty, no Request can be made.");
-    }
-    
-    // Make a request to the ACS API if there are variables to be searched for
-    acsApiService.makeAcsGetRequest(req);
-
-    return new BasicResponse(201, "Success", "Successfully made ACS Request.");
-  }
-
   /* 
     POST Endpoint for User to choose variables he/she wants for his/her CSV File. 
     Response will be a list of variables user will need to include in his/her initial 
@@ -111,9 +101,10 @@ public class FileController {
     }
 
     // Save the variables that user requested, so that we can use it later when the user uploads file
-    chosenVariablesRequest = req; // Need deep copy?
+    this.chosenVariablesRequest = req; // Need deep copy?
 
     Set<String> requiredVars = new HashSet<String>();
+    requiredVars.add("Unique ID (0, 1, 2, 3...)");
 
     // Analyze the variables that the user requested, and return a response of corresponding information that the user needs to put in his/her CSV file
 
@@ -151,7 +142,7 @@ public class FileController {
   @PostMapping("/uploadFile")
   public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
     
-    // TODO: Validate File?
+    // TODO: Possibly should validate File
 
     String fileName = fileStorageService.storeFile(file);
     this.file = file;
@@ -160,7 +151,31 @@ public class FileController {
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
 
-    // TODO: Need to create the 2nd CSV file that only has address, city, state and zipcode so that we can get census tract from user. Store in fileStorageService as well?
+    // TODO: Need to create the 2nd CSV file that only has address, city, state and zipcode so that we can get census tract from user. Store in fileStorageService as well I guess? After doing so, you can comment out below.
+
+    // // Get Census Tract Information (Max 10,000 Entries)
+    // Resource resource = fileStorageService.loadFileAsResource(addressFileName);
+    // File addressFile;
+    // try {
+    //   addressFile = resource.getFile();
+    // } catch (IOException e) {
+    //   e.printStackTrace();
+    //   return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
+    // }
+
+    // byte[] updatedAddressFile = acsApiService.getCensusTracts(addressFile);
+
+    Resource resource = fileStorageService.loadFileAsResource(fileName);
+    File addressFile;
+    try {
+      addressFile = resource.getFile();
+    } catch (IOException e) {
+      e.printStackTrace();
+      return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
+    }
+    acsApiService.getCensusTracts(addressFile);
+
+    // TODO: We will receive the Census Tract Info as []byte. Need to convert it to a CSV File, then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
 
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
   }
@@ -170,7 +185,12 @@ public class FileController {
 
     // Now the user wants to download the file with the variables he/she has chosen previously. Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
 
-    // ACS Database Request
+    // TODO: From the CSV File, need to parse it and get a List<PatientInfo> listOfPatients that will be used to process the requests from all data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information (E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services.
+
+    // ACS Request
+    // List<PatientInfo> results = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
+
+
 
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(filename)
         .toUriString();
@@ -268,14 +288,14 @@ public class FileController {
   }
 
   // process acs database queries
-  public void acs(Resource resource, ArrayList<String> parameters, ArrayList<String> content) {
+  // public void acs(Resource resource, ArrayList<String> parameters, ArrayList<String> content) {
 
-    AcsVariablesRequest req = splitACSVars(parameters);
+  //   AcsVariablesRequest req = splitACSVars(parameters);
 
-    Map<String, List<ImmutablePair<String, String>>> results = acsApiService.makeAcsGetRequest(req);
+  //   Map<String, List<ImmutablePair<String, String>>> results = acsApiService.makeAcsGetRequest(req);
 
-    populateCSV(resource, parameters, results, content);
-  }
+  //   populateCSV(resource, parameters, results, content);
+  // }
 
   @GetMapping("/downloadFile/{fileName:.+}")
   public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
@@ -303,7 +323,7 @@ public class FileController {
     parameters.add("Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent");
     parameters.add("Age Dependency Ratio");
 
-    acs(resource, parameters, content);
+    // acs(resource, parameters, content);
 
     return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
