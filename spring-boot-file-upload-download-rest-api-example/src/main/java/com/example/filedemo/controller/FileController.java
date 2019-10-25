@@ -154,7 +154,7 @@ public class FileController {
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
 
-    // TODO: Need to create the temp CSV file that only has address, city, state and zipcode so that we can get census tract from user. Can store in fileStorageService as well I guess? After doing so, you can comment out below (Pass this temp CSV File as a File object and call it 'addressFile' so it can be used below).
+    // TODO: Need to create the temp CSV file that only has address, city, state and zipcode so that we can get census tract from user. Can store in fileStorageService as well I guess? After doing so, can comment out below (Pass this temp CSV File as a File object and call it 'addressFile' so it can be used below).
 
     // // Get Census Tract Information (Max 10,000 Entries)
     // Resource resource = fileStorageService.loadFileAsResource(addressFileName);
