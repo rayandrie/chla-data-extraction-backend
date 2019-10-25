@@ -27,11 +27,39 @@ function onPageLoad() {
   };
   dataAcs = JSON.stringify(dataAcs);
 
+  $.ajax({
+    url: '/appendACSVariables',
+    method: 'POST',
+    data: dataAcs,
+    contentType: "application/json;charset=utf-8",
+    success: function(data) {
+      console.log("Status: ", data.status);
+      console.log("Message: ", data.message);
+    },
+    error: function(request, error) {
+      console.log(error);
+    }
+  });
+
   let dataSsdi = {
     firstName: "Elvis",
     lastName: "Presley"
   };
   dataSsdi = JSON.stringify(dataSsdi);
+
+  $.ajax({
+    url: '/getSsdiInfo',
+    method: 'POST',
+    data: dataSsdi,
+    contentType: "application/json;charset=utf-8",
+    success: function(data) {
+      console.log("SSDI INFO: ");
+      console.log(data);
+    },
+    error: function(request, error) {
+      console.log(error);
+    }
+  });
 
   let dataBmi = {
     weight: "70",
@@ -43,6 +71,20 @@ function onPageLoad() {
     officeVisitDate: "08/04/2019",
   }
   dataBmi = JSON.stringify(dataBmi);
+
+  $.ajax({
+    url: '/getBmiInfo',
+    method: 'POST',
+    data: dataBmi,
+    contentType: "application/json;charset=utf-8",
+    success: function(data) {
+      console.log("BMI DATA: ");
+      console.log(data);
+    },
+    error: function(request, error) {
+      console.log(error);
+    }
+  });
 }
 
 onPageLoad();

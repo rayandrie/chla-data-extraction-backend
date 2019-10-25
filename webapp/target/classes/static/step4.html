@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Public Databases</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <noscript>
+        <h2>Sorry! Your browser doesn't support Javascript</h2>
+    </noscript>
+
+    <div class="w3-bar w3-black w3-hide-small" >
+        <a href="newindex.html" class="w3-bar-item w3-button" style = "font-weight: bold;">v2 User Interface</a>
+        <a href="index.html" class="w3-bar-item w3-button">Home</a>
+        <a href="contact.html" class="w3-bar-item w3-button">Contact</a>
+        <a href="file-format.html" class="w3-bar-item w3-button">File Formatting</a>
+        <a href="about.html" class="w3-bar-item w3-button">About</a>
+    </div>
+
+    <div class="row1">
+        <div class="text-container1">
+            <h1 class="step">Step 4:</h1>
+            <h2>SUCCESS! YOU CAN DOWNLOAD A NEW CSV WITH YOUR QUERY RESULTS BY
+                CLICKING THE LINK BELOW.</h2>
+
+            <!-- return populated file - download file button -->
+            <button id= "download">
+                <a target='_blank' id = "downloadLink">Download</a>
+            </button>
+            <p class="description">Something wrong? Make sure you formatted your file correctly. Still having trouble?
+                Check out our <a id="contact" href='file-format.html'>FAQ</a>. Still struggling? Try contacting a
+                member
+                of the <a id="contact" href='contact.html'>team</a>.
+            </p>
+
+
+        </div>
+
+    </div>
+
+    <div class="row2">
+        <div class="text-container2">
+            <div class="upload-header">
+                <h1 class="step">About the Project</h1>
+            </div>
+            <div class="upload-content">
+                <p class="description">Project description goes here. <a id="contact" href='http://www.google.com'>Links</a>
+                    will be added as needed.
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="/js/step4.js"></script>
+</body>
+
+</html>
