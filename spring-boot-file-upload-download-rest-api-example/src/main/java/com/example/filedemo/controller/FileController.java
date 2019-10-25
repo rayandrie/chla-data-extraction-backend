@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,18 +15,12 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.example.filedemo.helpers.Utilities;
-import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.RequiredVariablesResponse;
 import com.example.filedemo.payload.UploadFileResponse;
 import com.example.filedemo.request.AcsVariablesRequest;
-import com.example.filedemo.request.BmiInfoRequest;
 import com.example.filedemo.request.ChosenVariablesRequest;
-import com.example.filedemo.request.SsdiRequest;
 import com.example.filedemo.response.acs.config.Variables;
-import com.example.filedemo.response.jewishgen.SsdiObject;
-import com.example.filedemo.response.zscore.BmiInfoResponse;
 import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.BmiService;
 import com.example.filedemo.service.FileStorageService;
@@ -72,6 +65,7 @@ public class FileController {
   @Autowired
   private BmiService bmiService;
 
+  /* Testing Endpoint */
   @GetMapping("/testing")
   public BasicResponse testing() {
     // MM/DD/YYYY
@@ -91,18 +85,11 @@ public class FileController {
     return new BasicResponse(201, "Success", "Hit /testing endpoint");
   }
 
-  @PostMapping("/getBmiInfo")
-  public BmiInfoResponse getBmiInfo(@RequestBody BmiInfoRequest req) {
-    BmiInfoResponse res = bmiService.getBmiInfo(req);
+  // @PostMapping("/testBmiInfo")
+  // public BmiInfoResponse getBmiInfo(@RequestBody BmiInfoRequest req) {
+  //   BmiInfoResponse res = bmiService.getBmiInfo(req);
 
-    return res;
-  }
-
-  // @PostMapping("/getSsdiInfo")
-  // public List<SsdiObject> getSsdiInfo(@RequestBody SsdiRequest req) {
-  //   List<SsdiObject> response = ssdiService.getRecordsByName(req.getFirstName(), req.getLastName());
-
-  //   return response;
+  //   return res;
   // }
 
   /* 
@@ -167,7 +154,7 @@ public class FileController {
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
 
-    // TODO: Need to create the 2nd CSV file that only has address, city, state and zipcode so that we can get census tract from user. Store in fileStorageService as well I guess? After doing so, you can comment out below.
+    // TODO: Need to create the temp CSV file that only has address, city, state and zipcode so that we can get census tract from user. Can store in fileStorageService as well I guess? After doing so, you can comment out below (Pass this temp CSV File as a File object and call it 'addressFile' so it can be used below).
 
     // // Get Census Tract Information (Max 10,000 Entries)
     // Resource resource = fileStorageService.loadFileAsResource(addressFileName);
@@ -191,7 +178,7 @@ public class FileController {
     }
     acsApiService.getCensusTracts(addressFile);
 
-    // TODO: We will receive the Census Tract Info as []byte. Need to convert it to a CSV File, then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
+    // TODO: We will receive the Census Tract Info as []byte. Need to convert it to a CSV File (File or MultipartFile?), then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
 
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
   }
@@ -201,13 +188,22 @@ public class FileController {
 
     // Now the user wants to download the file with the variables he/she has chosen previously. Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
 
-    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to process the requests from all data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information (E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services.
+    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to store the data we want from all data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information (E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services below.
 
     // ACS Request (NEED TO TEST)
-    // List<PatientInfo> results = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
+    // listOfPatients = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
 
     // SSDI Request (NEED TO TEST)
-    // results = ssdiService.getSsdiRecords(listOfPatients);
+    // if (chosenVariablesRequest.isRequestedSsdiInfo()) {
+    //   results = ssdiService.getSsdiRecords(listOfPatients);
+    // }
+
+    // BMI Request (NEED TO TEST)
+    // if (chosenVariablesRequest.isRequestedBmiInfo()) {
+    //   results = bmiService.getBmiInfo(listOfPatients);
+    // }
+
+    // TODO: After this, listOfPatients variable should have the information it needs to make the CSV File the user wants. Can convert listOfPatients to a CSV File, and then pass it back to the user
 
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(filename)
         .toUriString();

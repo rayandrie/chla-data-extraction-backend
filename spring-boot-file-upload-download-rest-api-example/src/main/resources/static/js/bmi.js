@@ -13,7 +13,7 @@ function callBmiEndpoint(weight, weightMetric, height, heightMetric, gender, dob
   dataBmi = JSON.stringify(dataBmi);
 
   $.ajax({
-    url: '/getBmiInfo',
+    url: '/testBmiInfo',
     method: 'POST',
     data: dataBmi,
     contentType: "application/json;charset=utf-8",

@@ -14,13 +14,13 @@ public class PatientInfo {
   private String lastName = null;
   
   // Initial BMI
-  private String height = null;
   private String weight = null;
+  private String height = null;
   private String gender = null;
   private String dateOfMeasurement = null;
 
   // Initial SSDI and BMI
-  private String dob = null;
+  private String dob = null; // Will be in format MM/dd/yyyy
 
   // Appended ACS
   private Map<String, String> varValByVarName = null;
@@ -30,9 +30,9 @@ public class PatientInfo {
   private String dateOfDeath = null;
 
   // Appended BMI
-  private String bmi;
-  private String zScore;
-  private String percentile;
+  private String bmi = null;
+  private String zScore = null;
+  private String percentile = null;
 
   public PatientInfo() {}
 
