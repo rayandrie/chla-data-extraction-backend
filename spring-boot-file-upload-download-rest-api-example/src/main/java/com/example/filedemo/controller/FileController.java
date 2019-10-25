@@ -168,16 +168,6 @@ public class FileController {
 
     // byte[] updatedAddressFile = acsApiService.getCensusTracts(addressFile);
 
-    Resource resource = fileStorageService.loadFileAsResource(fileName);
-    File addressFile;
-    try {
-      addressFile = resource.getFile();
-    } catch (IOException e) {
-      e.printStackTrace();
-      return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
-    }
-    acsApiService.getCensusTracts(addressFile);
-
     // TODO: We will receive the Census Tract Info as []byte. Need to convert it to a CSV File (File or MultipartFile?), then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
 
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
