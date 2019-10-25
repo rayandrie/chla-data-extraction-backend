@@ -1,49 +1,31 @@
 package com.example.filedemo.service;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.example.filedemo.internal.PatientInfo;
-import com.example.filedemo.request.AcsVariablesRequest;
 import com.example.filedemo.response.acs.config.Variables;
-import com.example.filedemo.response.acs.wrapper.AcsVariableObject;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequest;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpMessageConverterExtractor;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AcsApiService {
@@ -96,7 +78,7 @@ public class AcsApiService {
 
     ResponseEntity<byte[]> response = restTemplate.exchange(CENSUS_TRACT_POST_URL, HttpMethod.POST, requestEntity, byte[].class);
 
-    // Output Response
+    // // Output Response
     // String bodyResp = new String(response.getBody());
     // System.out.println("File Response:");
     // System.out.println(bodyResp);
@@ -210,5 +192,5 @@ public class AcsApiService {
 
     return varValByVarName;
   }
-  
+
 }

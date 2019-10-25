@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -15,6 +16,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.example.filedemo.helpers.Utilities;
 import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.RequiredVariablesResponse;
@@ -72,6 +74,20 @@ public class FileController {
 
   @GetMapping("/testing")
   public BasicResponse testing() {
+    // MM/DD/YYYY
+    // String dob = "03/09/1990";
+
+    // Map<String, String> x = Utilities.parseDOB(dob);
+    // System.out.println("Year: " + x.get("Year"));
+    // System.out.println("Month: " + x.get("Month"));
+    // System.out.println("Day: " + x.get("Day"));
+
+    // String dob2 = "11/21/2001";
+    // x = Utilities.parseDOB(dob2);
+    // System.out.println("Year: " + x.get("Year"));
+    // System.out.println("Month: " + x.get("Month"));
+    // System.out.println("Day: " + x.get("Day"));
+
     return new BasicResponse(201, "Success", "Hit /testing endpoint");
   }
 
@@ -82,12 +98,12 @@ public class FileController {
     return res;
   }
 
-  @PostMapping("/getSsdiInfo")
-  public List<SsdiObject> getSsdiInfo(@RequestBody SsdiRequest req) {
-    List<SsdiObject> response = ssdiService.getRecordsByName(req.getFirstName(), req.getLastName());
+  // @PostMapping("/getSsdiInfo")
+  // public List<SsdiObject> getSsdiInfo(@RequestBody SsdiRequest req) {
+  //   List<SsdiObject> response = ssdiService.getRecordsByName(req.getFirstName(), req.getLastName());
 
-    return response;
-  }
+  //   return response;
+  // }
 
   /* 
     POST Endpoint for User to choose variables he/she wants for his/her CSV File. 
@@ -185,12 +201,13 @@ public class FileController {
 
     // Now the user wants to download the file with the variables he/she has chosen previously. Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
 
-    // TODO: From the CSV File, need to parse it and get a List<PatientInfo> listOfPatients that will be used to process the requests from all data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information (E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services.
+    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to process the requests from all data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information (E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services.
 
-    // ACS Request
+    // ACS Request (NEED TO TEST)
     // List<PatientInfo> results = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
 
-
+    // SSDI Request (NEED TO TEST)
+    // results = ssdiService.getSsdiRecords(listOfPatients);
 
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(filename)
         .toUriString();
