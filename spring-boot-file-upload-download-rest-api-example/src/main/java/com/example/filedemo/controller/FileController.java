@@ -3,12 +3,17 @@ package com.example.filedemo.controller;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,7 +55,6 @@ public class FileController {
   private static final Logger logger = LoggerFactory.getLogger(FileController.class);
   private String filename;
   MultipartFile file;
-
   private ChosenVariablesRequest chosenVariablesRequest = null;
 
   @Autowired
@@ -107,7 +111,7 @@ public class FileController {
     this.chosenVariablesRequest = req; // Need deep copy?
 
     Set<String> requiredVars = new HashSet<String>();
-    requiredVars.add("Unique ID (0, 1, 2, 3...)");
+    requiredVars.add("Unique ID");
 
     // Analyze the variables that the user requested, and return a response of corresponding information that the user needs to put in his/her CSV file
 
@@ -142,10 +146,75 @@ public class FileController {
     return requiredVariablesResponse;
   }
 
+  public static File convertToFile(MultipartFile file) throws IOException {
+    File convFile = new File(file.getOriginalFilename());
+    convFile.createNewFile();
+    FileOutputStream fos = new FileOutputStream(convFile);
+    fos.write(file.getBytes());
+    fos.close();
+    return convFile;
+  }
+
+  //get the first row (titles) and check if it has all the required variables
+  public boolean inputFileValidation(@RequestParam("file") File file, String[] requiredVariables) {
+       
+      try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        String first;
+        if ((first = br.readLine()) != null) {
+          List<String> titles = Arrays.asList(first.split(","));
+          for (int i = 0; i < titles.size(); i++) {
+            titles.set(i, titles.get(i).trim());
+          }
+
+          for (String s : requiredVariables) {
+            if (!titles.contains(s)) {
+              return false;
+            }
+          }
+        }
+      
+    } catch (IOException ioe) {
+        ioe.printStackTrace();
+        System.out.println("uploadFile error");
+
+    }
+    return true;
+  }
+
   @PostMapping("/uploadFile")
   public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
-    
-    // TODO: Possibly should validate File
+
+     if (file.isEmpty()) {
+      return new UploadFileResponse("Internal Server Error", "empty file", "text/csv", 0);
+     }
+
+     File f = null; 
+     try {
+        f = convertToFile(file);
+     } catch (IOException e) {
+        System.out.println(e);
+     }
+
+   // if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+      String[] vars = {"Unique ID", "Address", "Zip Code", "State (Abbreviation Format)", "City"};
+      if (!inputFileValidation(f, vars)) {
+        return new UploadFileResponse("Internal Server Error", "missing an ACS variable", "text/csv", 0);
+      }
+    //}
+
+    /*if (chosenVariablesRequest.isRequestedSsdiInfo()) {
+      String[] vars = {"First Name", "Middle Initial", "Last Name", "Date of Birth (MM/DD/YYYY)"};
+      if (!inputFileValidation(file, vars)) {
+        return new UploadFileResponse("Internal Server Error", "missing a SSDI variable", "text/csv", 0);
+      }
+    }
+
+    if (chosenVariablesRequest.isRequestedBmiInfo()) {
+      String[] vars = {"Height (cm)", "Weight (kg)", "Gender ('male' or 'female')", "Date of Birth (MM/DD/YYYY)", "Date of Measurement"};
+      if (!inputFileValidation(file, vars)) {
+        return new UploadFileResponse("Internal Server Error", "missing a BMI variable", "text/csv", 0);
+      }
+    } */
 
     String fileName = fileStorageService.storeFile(file);
     this.file = file;
@@ -154,7 +223,90 @@ public class FileController {
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
 
-    // TODO: Need to create the temp CSV file that only has address, city, state and zipcode so that we can get census tract from user. Can store in fileStorageService as well I guess? After doing so, can comment out below (Pass this temp CSV File as a File object and call it 'addressFile' so it can be used below).
+    // TODO: Need to create the temp CSV file that only has address, city, state and zipcode so that we can get census tract from user. 
+    //Can store in fileStorageService as well I guess? 
+    //After doing so, can comment out below (Pass this temp CSV File as a File object and call it 'addressFile' so it can be used below).
+    
+    try {
+      Path path = Paths.get("..\\temp.csv");
+      File tempFile = null;   
+      try   {  
+        Path p = Files.createFile(path);   
+        tempFile = p.toFile(); 
+      }   
+      catch (IOException e)   {  
+        e.printStackTrace();  
+      }  
+
+      //if ACS, create temp file with only the inputted address, city, state and zipcode
+      //if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+        //String[] vars = {"Unique ID", "Address", "Zip Code", "State (Abbreviation Format)", "City"};
+     
+          populateTempCSV(tempFile, f, Arrays.asList(vars));
+     
+        //}
+
+      //updatedAddressFile array has the census track info 
+     byte[] updatedAddressFile = acsApiService.getCensusTracts(tempFile);
+
+      Path censusPath = Paths.get("..\\censusTract.csv");
+      File censusFile = null;   
+      try  {  
+        Path p = Files.createFile(censusPath);   
+        censusFile = p.toFile(); 
+      }   
+      catch (IOException e)   {  
+        e.printStackTrace();  
+      }  
+
+      // convert to file
+      try (FileOutputStream fos = new FileOutputStream(censusFile)) {
+          fos.write(updatedAddressFile);
+      } catch (IOException ioe) {
+          ioe.printStackTrace();
+      }
+
+      Resource censusResource = fileStorageService.loadFileAsResource(censusFile.getAbsolutePath());
+      Resource resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
+
+      //parse censusTract.csv then combine/append that file to input file
+      ArrayList<String> censusFileList = csvtoList(censusResource); // **strings delinated by "" like: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
+      ArrayList<String> inputFileList = csvtoList(resource);
+
+      // for (String s : censusFileList) {
+      //   System.out.println(s);
+      // }
+      //   System.out.println("-------------");
+
+      // for (String s : inputFileList) {
+      //   System.out.println(s);
+      // }
+
+
+      // "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
+      // -------------
+      // Unique ID, Address, City, State (Abbreviation Format), Zip Code
+      // 1, 4600 Silver Hill Rd, Suitland, MD, 20746
+
+      for (int i = 0; i < inputFileList.size(); i++) {
+        String s1 = censusFileList.get(i) + inputFileList.get(i);
+        inputFileList.set(i, s1);
+      }
+
+      // FileWriter writer = new FileWriter(resource.getFile(), false);
+      // for (String line : inputFileList) {
+      //   writer.append(line);
+      //   writer.write(System.getProperty("line.separator"));
+      // }
+      
+      // writer.flush();
+      // writer.close();
+
+    } catch(Exception e) {
+      e.printStackTrace();
+      return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
+
+    }
 
     // // Get Census Tract Information (Max 10,000 Entries)
     // Resource resource = fileStorageService.loadFileAsResource(addressFileName);
@@ -166,9 +318,10 @@ public class FileController {
     //   return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
     // }
 
-    // byte[] updatedAddressFile = acsApiService.getCensusTracts(addressFile);
 
-    // TODO: We will receive the Census Tract Info as []byte. Need to convert it to a CSV File (File or MultipartFile?), then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
+    // TODO: We will receive the Census Tract Info as []byte. 
+    //Need to convert it to a CSV File (File or MultipartFile?), 
+    //then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
 
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
   }
@@ -178,7 +331,9 @@ public class FileController {
 
     // Now the user wants to download the file with the variables he/she has chosen previously. Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
 
-    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to store the data we want from all data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information (E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services below.
+    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to store the data we want from all 
+    //data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information 
+    //(E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services below.
 
     // ACS Request (NEED TO TEST)
     // listOfPatients = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
@@ -201,6 +356,52 @@ public class FileController {
     return new UploadFileResponse(filename, fileDownloadUri, file.getContentType(), file.getSize());
   }
 
+  public Map<String, List<String>> grabCertainColumns(File temp, File input, List<String> vars) {
+    Map<String, List<String>> map = new LinkedHashMap<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(input))) {
+     List<List<String>> lines = new ArrayList<>();
+     String thisLine;
+     while ((thisLine = br.readLine()) != null) {
+       if (!thisLine.isEmpty()) {
+         lines.add(Arrays.asList(thisLine.split(", ")));
+       }
+     }
+
+     //have to remove empty spaces at end
+    // List<List<String>> lines1 = new ArrayList<>();
+    //  for (List<String> l : lines) {
+    //   for (int i = 0; i < l.size(); i++) {
+    //     List<String> li = new ArrayList<>();
+    //     if (!l.get(i).isEmpty()) {
+    //       li.add(l.get(i));
+    //     } 
+    //     lines1.add(li);
+    //   }
+    //  }
+
+      //2d array to map - parsing out the vars we don't want
+     for (int i = 0; i < lines.get(0).size(); i++) {
+        if (vars.contains(lines.get(0).get(i))) {
+           List<String> list = new ArrayList<>();
+           for (int j = 1; j < lines.size(); j++) {
+              list.add(lines.get(j).get(i));
+           }
+           map.put(lines.get(0).get(i), list);
+         }
+     }
+
+     System.out.println(map);
+      
+    } catch (FileNotFoundException fne) {
+      System.out.println(fne);
+
+    } catch (IOException e) {
+      System.out.println(e);
+    }
+
+    return map;
+  }
+
   // take current user inputted csv and converts it into an ArrayList<String>
   public ArrayList<String> csvtoList(Resource resource) {
     ArrayList<String> records = new ArrayList<>();
@@ -220,15 +421,44 @@ public class FileController {
     return records;
   }
 
+  //populates csv with just the necessary columns
+  public void populateTempCSV(File temp, File input, List<String> vars) {
+    Map<String, List<String>> map = grabCertainColumns(temp, input, vars);
+    int numRows = map.get(vars.get(0)).size();
+
+    try {
+      FileWriter writer = new FileWriter(temp, false);
+     
+      //writes the titles (parameters like address, zip code, etc.)
+      // for (String s : map.keySet()) {
+      //   writer.append(s);
+      //   writer.append(",");
+      // }
+      // writer.write(System.getProperty("line.separator"));
+      
+      //writes the value/ element i of the list to the current line
+      for (int i = 0; i < numRows; i++) {
+        for (Map.Entry<String, List<String>> e : map.entrySet()) {
+          List<String> values = e.getValue();
+          writer.append(values.get(i));
+          writer.append(",");
+        }
+        writer.write(System.getProperty("line.separator"));
+      }
+
+      writer.flush();
+      writer.close();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
   public void populateCSV(Resource resource, ArrayList<String> parameters,
       Map<String, List<ImmutablePair<String, String>>> results, ArrayList<String> content) {
-    // write the results data to csv - just write it to file for now
     try {
       FileWriter writer = new FileWriter(resource.getFile(), false);
 
       // add new parameters - define column headers here
-      writer.append("State");
-      writer.append(",");
 
       // for all parameters, add a column for each
       if (!results.isEmpty()) {
