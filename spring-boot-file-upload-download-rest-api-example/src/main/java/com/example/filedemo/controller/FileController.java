@@ -283,24 +283,27 @@ public class FileController {
       // }
 
 
-      // "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
+      // census: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
       // -------------
-      // Unique ID, Address, City, State (Abbreviation Format), Zip Code
+      // input: Unique ID, Address, City, State (Abbreviation Format), Zip Code
       // 1, 4600 Silver Hill Rd, Suitland, MD, 20746
 
-      for (int i = 0; i < inputFileList.size(); i++) {
-        String s1 = censusFileList.get(i) + inputFileList.get(i);
+        inputFileList.set(0, inputFileList.get(0)+", census");
+
+      //combines input file with census tract file
+      for (int i = 1; i < inputFileList.size(); i++) {
+        String s1 = censusFileList.get(i-1) + "," + inputFileList.get(i);
         inputFileList.set(i, s1);
       }
 
-      // FileWriter writer = new FileWriter(resource.getFile(), false);
-      // for (String line : inputFileList) {
-      //   writer.append(line);
-      //   writer.write(System.getProperty("line.separator"));
-      // }
+      FileWriter writer = new FileWriter(resource.getFile(), false);
+      for (String line : inputFileList) {
+        writer.append(line);
+        writer.write(System.getProperty("line.separator"));
+      }
       
-      // writer.flush();
-      // writer.close();
+      writer.flush();
+      writer.close();
 
     } catch(Exception e) {
       e.printStackTrace();
