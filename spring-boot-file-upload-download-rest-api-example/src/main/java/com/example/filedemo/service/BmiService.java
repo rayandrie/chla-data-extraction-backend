@@ -3,6 +3,7 @@ package com.example.filedemo.service;
 import java.io.IOException;
 import java.util.List;
 
+import com.example.filedemo.helpers.Utilities;
 import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.response.zscore.BmiInfoResponse;
 
@@ -27,6 +28,13 @@ public class BmiService {
     // Find out the BMI for each patient in the list
     for (int i = 0; i < listOfPatients.size(); i++) {
       PatientInfo patient = listOfPatients.get(i);
+      
+      // Check if patient is more than 20 years old at time of measurement. If so, then skip.
+      boolean isYoungerThan20 = Utilities.ageIsLessThan20(patient.getDob(), patient.getDateOfMeasurement());
+      if (!isYoungerThan20) {
+        continue;
+      }
+      
       BmiInfoResponse bmiData = makeBmiCall(patient.getWeight(), 
         patient.getHeight(), patient.getGender(), 
         patient.getDob(), patient.getDateOfMeasurement()

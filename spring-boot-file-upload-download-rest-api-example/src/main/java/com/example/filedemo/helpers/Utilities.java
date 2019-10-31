@@ -49,4 +49,28 @@ public class Utilities {
 
     return dateMap;
   }
+
+  public static boolean ageIsLessThan20(String dob, String timeOfMeasurement) {
+    // MM/DD/YYYY
+    Date dobDate = new Date();
+    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+    Date timeMeasurementDate = new Date();
+    SimpleDateFormat formatter2 = new SimpleDateFormat("MM/dd/yyyy");
+
+    try {
+      dobDate = formatter.parse(dob);
+      timeMeasurementDate = formatter2.parse(timeOfMeasurement);
+    } catch (ParseException io) {
+      io.printStackTrace();
+    }
+
+    long difference = timeMeasurementDate.getTime() - dobDate.getTime();
+    float daysDiff = (difference / (1000*60*60*24));
+    
+    if (daysDiff < 7300) {
+      // Less than 20 years old
+      return true;
+    }
+    return false;
+  }
 }
