@@ -1,4 +1,3 @@
-
 //jQuery time
 var current_fs, next_fs, previous_fs; //fieldsets
 var left, opacity, scale; //fieldset properties which we will animate
@@ -7,19 +6,17 @@ var animating; //flag to prevent quick multi-click glitches
 /* When the user clicks on the button, 
 toggle between hiding and showing the dropdown content */
 $(document).ready(function() {
-    $('#trigger').click( function(event){
-        
-        event.stopPropagation();
-        
-        $('#drop').toggle();
-        
+    $('#trigger').click( function(event){        
+        event.stopPropagation();        
+        $('#drop').toggle();     
     });
     
     $(document).click( function(){
-
         $('#drop').hide();
+	});
 
-    });
+	$('#category').multiselect();
+	
 });
 
 var varsByCategory = {
@@ -39,7 +36,41 @@ var varsByCategory = {
         }
     }
 
-$(".next").click(function () {
+$(".next").click(function (event) {
+
+	//the user chose the variables
+	if((event.target.id) == "chosedb"){
+		// var base_url = window.location.origin;
+		// var url = base_url + "/chooseVariables";
+		// var payload = ["% of Total Population - Under 5 Years"];
+		// console.log("url for post request to chooseVariables")
+
+		// var postData = {listOfSubjectVariables : payload};
+
+		// // jQuery .post method is used to send post request.
+		// $.post(url, postData, function (data, status) {
+		// 	alert("Ajax post status is " + status);
+		// 	alert(data);
+		// 	alert(status);
+		// });
+		sendVars();
+	}
+
+	//if the user tries to click next without uploading a file
+	if((event.target.id) == "uploadFile"){
+		console.log("ONSUBMIT CLICKED");
+		var files = singleFileUploadInput.files;
+		if(files.length === 0) {
+			singleFileUploadError.innerHTML = "Please SELECT a file";
+			console.log("DIDN'T SELECT FILE");
+			singleFileUploadError.style.display = "block";
+			return;
+		}
+		uploadSingleFile(files[0]);
+		downloadSingleFile();
+		event.preventDefault();
+	}
+
 	if (animating) return false;
 	animating = true;
 
@@ -129,11 +160,11 @@ function uploadSingleFile(file) {
         console.log(xhr.responseText);
         var response = JSON.parse(xhr.responseText);
         if(xhr.status == 200) {
-            singleFileUploadError.style.display = "none";
-            singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
-            singleFileUploadSuccess.style.display = "block";
+			singleFileUploadError.style.display = "none";
+            //singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
+            //singleFileUploadSuccess.style.display = "block";
         } else {
-            singleFileUploadSuccess.style.display = "none";
+            //singleFileUploadSuccess.style.display = "none";
             singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
         }
     }
@@ -144,7 +175,7 @@ function uploadSingleFile(file) {
 //var singleUploadForm = document.querySelector('#singleUploadForm');
 var singleFileUploadInput = document.querySelector('#singleFileUploadInput');
 var singleFileUploadError = document.querySelector('#singleFileUploadError');
-var singleFileUploadSuccess = document.querySelector('#singleFileUploadSuccess');
+//var singleFileUploadSuccess = document.querySelector('#singleFileUploadSuccess');
 var download = document.querySelector('#download');
 
 // singleUploadForm.addEventListener('submit', function(event){
@@ -163,7 +194,7 @@ var download = document.querySelector('#download');
 
 
 function downloadSingleFile() {
-    
+    event.preventDefault();
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "/returnDownloadFile");
 
@@ -172,34 +203,84 @@ function downloadSingleFile() {
         var response = JSON.parse(xhr.responseText);
 
         if(xhr.status == 200) {
-            console.log("DOWNDLOAD");
+            console.log("DOWNLOAD");
 
             downloadLink.href = response.fileDownloadUri;
             downloadLink.download = response.fileDownloadUri;
 
         } //add error checking here
     }
-    xhr.send();
+	xhr.send();
+	event.preventDefault();
 }
 
 var download = document.querySelector('#download');
 var downloadLink = document.querySelector('#downloadLink');
 
-download.addEventListener('click', function(event) {
+// download.addEventListener('click', function(event) {
 
-    console.log("ONSUBMIT CLICKED");
-    downloadSingleFile();
+//     console.log("ONSUBMIT CLICKED");
+//     downloadSingleFile();
    
-})
+// })
 
-$( "#uploadFile" ).click(function() {
-  console.log("ONSUBMIT CLICKED");
-    var files = singleFileUploadInput.files;
-    if(files.length === 0) {
-        singleFileUploadError.innerHTML = "Please SELECT a file";
-        console.log("DIDN'T SELECT FILE");
-        singleFileUploadError.style.display = "block";
+// $( "#download" ).click(function() {
+// 	e.preventDefault();
+//   console.log("DOWNLOAD CLICKED");
+//   downloadSingleFile();
+// });
+
+// $( "#uploadFile" ).click(function() {
+//   console.log("ONSUBMIT CLICKED");
+//     var files = singleFileUploadInput.files;
+//     if(files.length === 0) {
+//         singleFileUploadError.innerHTML = "Please SELECT a file";
+//         console.log("DIDN'T SELECT FILE");
+// 		singleFileUploadError.style.display = "block";
+// 		return;
+//     }
+// 	uploadSingleFile(files[0]);
+// 	$( ".next" ).trigger( "click" );
+//     event.preventDefault();
+// });
+
+function sendVars() {
+    // var formData = new FormData();
+    // formData.append("file", file);
+
+    // var xhr = new XMLHttpRequest();
+    // xhr.open("POST", "/uploadFile");
+
+    // xhr.onload = function() {
+    //     console.log(xhr.responseText);
+    //     var response = JSON.parse(xhr.responseText);
+    //     if(xhr.status == 200) {
+	// 		singleFileUploadError.style.display = "none";
+    //         //singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
+    //         //singleFileUploadSuccess.style.display = "block";
+    //     } else {
+    //         //singleFileUploadSuccess.style.display = "none";
+    //         singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
+    //     }
+    // }
+
+	// xhr.send(formData);
+	var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
+var theUrl = "/chooseVariables";
+xmlhttp.open("POST", theUrl);
+xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+xmlhttp.onload = function() {
+        console.log(xmlhttp.responseText);
+        var response = JSON.parse(xmlhttp.responseText);
+        if(xmlhttp.status == 200) {
+			console.log("post request successful");
+        } else {
+			//singleFileUploadSuccess.style.display = "none";
+			console.log(this.responseText);
+            //singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
+        }
     }
-    uploadSingleFile(files[0]);
-    event.preventDefault();
-});
+xmlhttp.send(JSON.stringify({"listOfSubjectVariables": ["% of Total Population - Under 5 Years"]}));
+	
+}

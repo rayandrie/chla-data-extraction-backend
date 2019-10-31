@@ -1,6 +1,4 @@
 
- [Uploading an Downloading files with Spring Boot](https://www.callicoder.com/spring-boot-file-upload-download-rest-api-example/)
-
 **1. Clone the repository** 
 
 ```bash

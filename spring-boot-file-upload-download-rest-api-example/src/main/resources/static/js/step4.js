@@ -10,7 +10,7 @@ function downloadSingleFile() {
         var response = JSON.parse(xhr.responseText);
 
         if(xhr.status == 200) {
-            console.log("DOWNLAOD");
+            console.log("DOWNLOAD");
 
             downloadLink.href = response.fileDownloadUri;
             downloadLink.download = response.fileDownloadUri;
