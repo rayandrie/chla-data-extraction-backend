@@ -1,0 +1,12 @@
+# IDE settings
+.classpath
+.project
+.settings/
+.vscode
+.idea
+
+# Binary Files
+*.class
+*.lst
+spring-boot-file-upload-download-rest-api-example/target/classes/
+spring-boot-file-upload-download-rest-api-example/file-demo.iml
