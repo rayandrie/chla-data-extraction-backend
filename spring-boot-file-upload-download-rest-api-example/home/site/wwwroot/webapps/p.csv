@@ -1,3 +1,2 @@
-State,Age Dependency Ratio,GINI Index of Income Inequality Households,Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent,
-California,-888888888,0.4889,33.1
-Washington,-888888888,0.4569,29.6
+Unique ID, Address, City, State (Abbreviation Format), Zip Code, BMI
+1, 4600 Silver Hill Rd, Suitland, MD, 20746

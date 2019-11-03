@@ -5,41 +5,53 @@ var animating; //flag to prevent quick multi-click glitches
 
 /* When the user clicks on the button, 
 toggle between hiding and showing the dropdown content */
-$(document).ready(function() {
-    $('#trigger').click( function(event){        
-        event.stopPropagation();        
-        $('#drop').toggle();     
-    });
-    
-    $(document).click( function(){
-        $('#drop').hide();
+$(document).ready(function () {
+	$('#trigger').click(function (event) {
+		event.stopPropagation();
+		$('#drop').toggle();
 	});
 
-	$('#category').multiselect();
-	
+	$(document).click(function () {
+		$('#drop').hide();
+	});
+
+	//$('#category').multiselect();
+
+	//$('select[multiple]').multiselect();
+
+	// $('.selections').dropdown({
+	// 	// options here
+	//   });
 });
 
+// $('#variables').multiselect({
+//     columns: 1,
+//     placeholder: 'Select Languages',
+//     search: true,
+//     selectAll: true
+// });
+
 var varsByCategory = {
-    A: ["ACS 1", "ACS 2", "ACS 3", "ACS 4"],
-    B: ["BMI 1", "BMI 2", "BMI 3", "BMI 4"],
-    C: ["SSDI 1", "SSDI 2", "SSDI 3", "SSDI 4"]
+	A: ["ACS 1", "ACS 2", "ACS 3", "ACS 4"],
+	B: ["BMI 1", "BMI 2", "BMI 3", "BMI 4"],
+	C: ["SSDI 1", "SSDI 2", "SSDI 3", "SSDI 4"]
 }
 
-    function changecat(value) {
-        if (value.length == 0) document.getElementById("category").innerHTML = "<option></option>";
-        else {
-            var catOptions = "";
-            for (categoryId in varsByCategory[value]) {
-                catOptions += "<option>" + varsByCategory[value][categoryId] + "</option>";
-            }
-            document.getElementById("category").innerHTML = catOptions;
-        }
-    }
+function changecat(value) {
+	if (value.length == 0) document.getElementById("category").innerHTML = "<option></option>";
+	else {
+		var catOptions = "";
+		for (categoryId in varsByCategory[value]) {
+			catOptions += "<option>" + varsByCategory[value][categoryId] + "</option>";
+		}
+		document.getElementById("category").innerHTML = catOptions;
+	}
+}
 
 $(".next").click(function (event) {
 
 	//the user chose the variables
-	if((event.target.id) == "chosedb"){
+	if ((event.target.id) == "chosedb") {
 		// var base_url = window.location.origin;
 		// var url = base_url + "/chooseVariables";
 		// var payload = ["% of Total Population - Under 5 Years"];
@@ -53,14 +65,17 @@ $(".next").click(function (event) {
 		// 	alert(data);
 		// 	alert(status);
 		// });
+
+		var selectedValues = $('#vars').val();
+		console.log("selected values:" + selectedValues);
 		sendVars();
 	}
 
 	//if the user tries to click next without uploading a file
-	if((event.target.id) == "uploadFile"){
+	if ((event.target.id) == "uploadFile") {
 		console.log("ONSUBMIT CLICKED");
 		var files = singleFileUploadInput.files;
-		if(files.length === 0) {
+		if (files.length === 0) {
 			singleFileUploadError.innerHTML = "Please SELECT a file";
 			console.log("DIDN'T SELECT FILE");
 			singleFileUploadError.style.display = "block";
@@ -150,26 +165,26 @@ $(".submit").click(function () {
 ///my stuff
 
 function uploadSingleFile(file) {
-    var formData = new FormData();
-    formData.append("file", file);
+	var formData = new FormData();
+	formData.append("file", file);
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/uploadFile");
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "/uploadFile");
 
-    xhr.onload = function() {
-        console.log(xhr.responseText);
-        var response = JSON.parse(xhr.responseText);
-        if(xhr.status == 200) {
+	xhr.onload = function () {
+		console.log(xhr.responseText);
+		var response = JSON.parse(xhr.responseText);
+		if (xhr.status == 200) {
 			singleFileUploadError.style.display = "none";
-            //singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
-            //singleFileUploadSuccess.style.display = "block";
-        } else {
-            //singleFileUploadSuccess.style.display = "none";
-            singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
-        }
-    }
+			//singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
+			//singleFileUploadSuccess.style.display = "block";
+		} else {
+			//singleFileUploadSuccess.style.display = "none";
+			singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
+		}
+	}
 
-    xhr.send(formData);
+	xhr.send(formData);
 }
 
 //var singleUploadForm = document.querySelector('#singleUploadForm');
@@ -194,22 +209,23 @@ var download = document.querySelector('#download');
 
 
 function downloadSingleFile() {
-    event.preventDefault();
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/returnDownloadFile");
+	event.preventDefault();
+	var xhr = new XMLHttpRequest();
+	xhr.open("POST", "/returnDownloadFile");
 
-    xhr.onload = function() {
-        console.log(xhr.responseText);
-        var response = JSON.parse(xhr.responseText);
+	xhr.onload = function () {
+		console.log(xhr.responseText);
+		var response = JSON.parse(xhr.responseText);
 
-        if(xhr.status == 200) {
-            console.log("DOWNLOAD");
+		if (xhr.status == 200) {
+			console.log("DOWNLOAD");
 
-            downloadLink.href = response.fileDownloadUri;
-            downloadLink.download = response.fileDownloadUri;
+			downloadLink.href = response.fileDownloadUri;
+			downloadLink.download = response.fileDownloadUri;
+			console.log("download link:" + downloadLink.download);
 
-        } //add error checking here
-    }
+		} //add error checking here
+	}
 	xhr.send();
 	event.preventDefault();
 }
@@ -221,7 +237,7 @@ var downloadLink = document.querySelector('#downloadLink');
 
 //     console.log("ONSUBMIT CLICKED");
 //     downloadSingleFile();
-   
+
 // })
 
 // $( "#download" ).click(function() {
@@ -245,42 +261,51 @@ var downloadLink = document.querySelector('#downloadLink');
 // });
 
 function sendVars() {
-    // var formData = new FormData();
-    // formData.append("file", file);
+	// var formData = new FormData();
+	// formData.append("file", file);
 
-    // var xhr = new XMLHttpRequest();
-    // xhr.open("POST", "/uploadFile");
+	// var xhr = new XMLHttpRequest();
+	// xhr.open("POST", "/uploadFile");
 
-    // xhr.onload = function() {
-    //     console.log(xhr.responseText);
-    //     var response = JSON.parse(xhr.responseText);
-    //     if(xhr.status == 200) {
+	// xhr.onload = function() {
+	//     console.log(xhr.responseText);
+	//     var response = JSON.parse(xhr.responseText);
+	//     if(xhr.status == 200) {
 	// 		singleFileUploadError.style.display = "none";
-    //         //singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
-    //         //singleFileUploadSuccess.style.display = "block";
-    //     } else {
-    //         //singleFileUploadSuccess.style.display = "none";
-    //         singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
-    //     }
-    // }
+	//         //singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
+	//         //singleFileUploadSuccess.style.display = "block";
+	//     } else {
+	//         //singleFileUploadSuccess.style.display = "none";
+	//         singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
+	//     }
+	// }
 
-	// xhr.send(formData);
+	// xhr.send(formData)
+	var listofDetailedVariables = $('#vars').val();
+
+	//set up the json object
+	var obj = new Object();
+	obj.listOfDetailedVariables = listofDetailedVariables;
+	var jsonString= JSON.stringify(obj);
+	console.log("json:\n " + jsonString);
+	
+
 	var xmlhttp = new XMLHttpRequest();   // new HttpRequest instance 
-var theUrl = "/chooseVariables";
-xmlhttp.open("POST", theUrl);
-xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	var theUrl = "/chooseVariables";
+	xmlhttp.open("POST", theUrl);
+	xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 
-xmlhttp.onload = function() {
-        console.log(xmlhttp.responseText);
-        var response = JSON.parse(xmlhttp.responseText);
-        if(xmlhttp.status == 200) {
+	xmlhttp.onload = function () {
+		console.log(xmlhttp.responseText);
+		var response = JSON.parse(xmlhttp.responseText);
+		if (xmlhttp.status == 200) {
 			console.log("post request successful");
-        } else {
+		} else {
 			//singleFileUploadSuccess.style.display = "none";
 			console.log(this.responseText);
-            //singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
-        }
-    }
-xmlhttp.send(JSON.stringify({"listOfSubjectVariables": ["% of Total Population - Under 5 Years"]}));
-	
+			//singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
+		}
+	}
+	xmlhttp.send(jsonString);
+
 }
