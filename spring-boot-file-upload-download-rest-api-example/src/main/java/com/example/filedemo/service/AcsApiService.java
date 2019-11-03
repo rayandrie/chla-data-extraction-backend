@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.response.acs.config.Variables;
@@ -103,12 +104,12 @@ public class AcsApiService {
 
       // Generate the query for the particular patient
       String subjectQuery = generateAcsQueryForSinglePatient(BASE_URL_ACS_SUBJECT, listOfSubjectVariables, patientStateParam, patientCountyParam, patientTractParam);
-      // System.out.println("Subject Query: " + subjectQuery);
+       System.out.println("Subject Query: " + subjectQuery);
       String detailedQuery = generateAcsQueryForSinglePatient(BASE_URL_ACS_DETAILED, listOfDetailedVariables, patientStateParam, patientCountyParam, patientTractParam);
-      // System.out.println("Detailed Query: " + detailedQuery);
+       System.out.println("Detailed Query: " + detailedQuery);
 
       // Create the Map that will be appended to the PatientInfo Variable
-      Map<String, String> varValByVarName = new HashMap<String, String>();
+      LinkedHashMap<String, String> varValByVarName = new LinkedHashMap<String, String>();
 
       // Parse the Response for both subject and detailed tables, and put them in our Map
       varValByVarName = parseAcsResponseForSinglePatient(subjectQuery, listOfSubjectVariables, varValByVarName);
@@ -147,12 +148,12 @@ public class AcsApiService {
 
     //sample query for subject: 
     // https://api.census.gov/data/2017/acs/acs5?get=NAME,B019083_001E&for=tract:001000&in=state:01+county:103
-    
+
     return fullQuery;
   }
 
   // Parse the response from the ACS API
-  private Map<String, String> parseAcsResponseForSinglePatient(String query, String[] listOfVariables, Map<String, String> varValByVarName) {
+  private LinkedHashMap<String, String> parseAcsResponseForSinglePatient(String query, String[] listOfVariables, LinkedHashMap<String, String> varValByVarName) {
     // Empty query, do nothing
     if (query.equals("")) {
       return varValByVarName;

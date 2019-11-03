@@ -20,6 +20,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.RequiredVariablesResponse;
 import com.example.filedemo.payload.UploadFileResponse;
@@ -56,6 +57,7 @@ public class FileController {
   private String filename;
   MultipartFile file;
   private ChosenVariablesRequest chosenVariablesRequest = null;
+  Resource resource;
 
   @Autowired
   private FileStorageService fileStorageService;
@@ -146,6 +148,7 @@ public class FileController {
     return requiredVariablesResponse;
   }
 
+  //converts user inputed MultipartFile into a File
   public static File convertToFile(MultipartFile file) throws IOException {
     File convFile = new File(file.getOriginalFilename());
     convFile.createNewFile();
@@ -157,7 +160,6 @@ public class FileController {
 
   //get the first row (titles) and check if it has all the required variables
   public boolean inputFileValidation(@RequestParam("file") File file, String[] requiredVariables) {
-       
       try (BufferedReader br = new BufferedReader(new FileReader(file))) {
         String first;
         if ((first = br.readLine()) != null) {
@@ -267,15 +269,13 @@ public class FileController {
       }
 
       Resource censusResource = fileStorageService.loadFileAsResource(censusFile.getAbsolutePath());
-      Resource resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
+      resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
 
       //parse censusTract.csv then combine/append that file to input file
       ArrayList<String> censusFileList = csvtoList(censusResource); // **strings delinated by "" like: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
       ArrayList<String> inputFileList = csvtoList(resource);
 
-      // for (String s : censusFileList) {
-      //   System.out.println(s);
-      // }
+      
       //   System.out.println("-------------");
 
       // for (String s : inputFileList) {
@@ -288,11 +288,21 @@ public class FileController {
       // input: Unique ID, Address, City, State (Abbreviation Format), Zip Code
       // 1, 4600 Silver Hill Rd, Suitland, MD, 20746
 
-        inputFileList.set(0, inputFileList.get(0)+", census");
+      inputFileList.set(0, inputFileList.get(0)+", tract");
 
       //combines input file with census tract file
       for (int i = 1; i < inputFileList.size(); i++) {
-        String s1 = censusFileList.get(i-1) + "," + inputFileList.get(i);
+        String census = censusFileList.get(i-1);
+
+        //grab the census tract - last 3 like "06","067","001101"
+        String[] sarr = census.split(","); 
+        String tract = "";
+        for (int j = sarr.length - 4; j < sarr.length-1; j++) {
+          String trim = sarr[j].substring(1,sarr[j].length()-1); //removes quotes
+          tract += trim;
+        }
+        
+        String s1 = inputFileList.get(i) + ", " + tract;
         inputFileList.set(i, s1);
       }
 
@@ -332,31 +342,84 @@ public class FileController {
   @PostMapping("/returnDownloadFile")
   public UploadFileResponse returnDownloadFile() {
 
-    // Now the user wants to download the file with the variables he/she has chosen previously. Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
-
-    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to store the data we want from all 
-    //data sources (See PatientInfo.java). Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information 
-    //(E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services below.
-
-    // ACS Request (NEED TO TEST)
-    // listOfPatients = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
-
-    // SSDI Request (NEED TO TEST)
-    // if (chosenVariablesRequest.isRequestedSsdiInfo()) {
-    //   results = ssdiService.getSsdiRecords(listOfPatients);
-    // }
-
-    // BMI Request (NEED TO TEST)
-    // if (chosenVariablesRequest.isRequestedBmiInfo()) {
-    //   results = bmiService.getBmiInfo(listOfPatients);
-    // }
-
-    // TODO: After this, listOfPatients variable should have the information it needs to make the CSV File the user wants. Can convert listOfPatients to a CSV File, and then pass it back to the user
-
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(filename)
         .toUriString();
 
     return new UploadFileResponse(filename, fileDownloadUri, file.getContentType(), file.getSize());
+  }
+
+  //uses the file as a map form and make it into a list of patient info
+  public List<PatientInfo> makeListOfPatients (Map<String, List<String>> map, int num) {
+    
+    List<PatientInfo> patients = new ArrayList<>();
+    
+    for (int i = 0; i < num; i++) {
+      PatientInfo p = new PatientInfo();
+      if (map.containsKey("tract")) {
+        String tract = map.get("tract").get(i); //11 digits: first 2 digits = state, next 3 = county, next 6 is tract
+        p.setState(tract.substring(0,2));
+        p.setCounty(tract.substring(2,5));
+        p.setTract(tract.substring(5,11));
+      }
+      //ssdi
+      if (map.containsKey("first name")) {
+        p.setFirstName(map.get("first name").get(i));
+      }
+      if (map.containsKey("last name")) {
+        p.setLastName(map.get("last name").get(i));
+      }
+      if (map.containsKey("middle initial")) {
+        p.setMiddleInitial(map.get("middle initial").get(i));
+      }
+
+      //bmi
+      if (map.containsKey("weight")) {
+        p.setWeight(map.get("weight").get(i));
+      }
+      if (map.containsKey("height")) {
+        p.setHeight(map.get("height").get(i));
+      }
+      if (map.containsKey("gender")) {
+        p.setGender(map.get("gender").get(i));
+      }
+      if (map.containsKey("date of measurement")) {
+        p.setDateOfMeasurement(map.get("date of measurement").get(i));
+      }
+      if (map.containsKey("dob")) {
+        p.setDob(map.get("dob").get(i));
+      }
+      patients.add(p);
+    }
+    return patients;
+  }
+
+  //converts given file into a map of <column header, list of matching value entries>
+  public Map<String, List<String>> csvToMap (File input) {
+    Map<String, List<String>> map = new LinkedHashMap<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(input))) {
+      List<List<String>> lines = new ArrayList<>();
+      String thisLine;
+      while ((thisLine = br.readLine()) != null) {
+        if (!thisLine.isEmpty()) {
+          lines.add(Arrays.asList(thisLine.toLowerCase().split(", ")));
+        }
+      }
+
+      //for number of columns (lines.get(0) size) parse into map
+      for (int i = 0; i < lines.get(0).size(); i++) {
+        List<String> list = new ArrayList<>();
+        for (int j = 1; j < lines.size(); j++) {
+          list.add(lines.get(j).get(i));
+        }
+        map.put(lines.get(0).get(i), list);
+      }
+    } catch (FileNotFoundException fne) {
+      System.out.println(fne);
+
+    } catch (IOException e) {
+      System.out.println(e);
+    }
+    return map;
   }
 
   public Map<String, List<String>> grabCertainColumns(File temp, File input, List<String> vars) {
@@ -370,18 +433,6 @@ public class FileController {
        }
      }
 
-     //have to remove empty spaces at end
-    // List<List<String>> lines1 = new ArrayList<>();
-    //  for (List<String> l : lines) {
-    //   for (int i = 0; i < l.size(); i++) {
-    //     List<String> li = new ArrayList<>();
-    //     if (!l.get(i).isEmpty()) {
-    //       li.add(l.get(i));
-    //     } 
-    //     lines1.add(li);
-    //   }
-    //  }
-
       //2d array to map - parsing out the vars we don't want
      for (int i = 0; i < lines.get(0).size(); i++) {
         if (vars.contains(lines.get(0).get(i))) {
@@ -393,8 +444,6 @@ public class FileController {
          }
      }
 
-     System.out.println(map);
-      
     } catch (FileNotFoundException fne) {
       System.out.println(fne);
 
@@ -443,8 +492,8 @@ public class FileController {
       for (int i = 0; i < numRows; i++) {
         for (Map.Entry<String, List<String>> e : map.entrySet()) {
           List<String> values = e.getValue();
-          writer.append(values.get(i));
-          writer.append(",");
+            writer.append(values.get(i));
+            writer.append(",");
         }
         writer.write(System.getProperty("line.separator"));
       }
@@ -456,42 +505,36 @@ public class FileController {
     }
   }
 
-  public void populateCSV(Resource resource, ArrayList<String> parameters,
-      Map<String, List<ImmutablePair<String, String>>> results, ArrayList<String> content) {
+  public void populateCSV(Resource resource, ArrayList<String> content, List<PatientInfo> listOfPatients) {
     try {
       FileWriter writer = new FileWriter(resource.getFile(), false);
 
       // add new parameters - define column headers here
-
-      // for all parameters, add a column for each
-      if (!results.isEmpty()) {
-        List<ImmutablePair<String, String>> column = (List<ImmutablePair<String, String>>) results.values().toArray()[0];
-        for (ImmutablePair<String, String> p : column ) {
-          writer.append(p.left);
-          writer.append(",");
-        }
+      ArrayList<String> parameters = new ArrayList<>();
+      for (String s : listOfPatients.get(0).getVarValByVarName().keySet()) {
+        parameters.add(s);
       }
+      String headers = content.get(0) + "," + String.join(",", parameters);
+      writer.append(headers);
+      writer.write(System.getProperty("line.separator")); //new line
 
-      writer.append("\n");
+      //acs gives: ca varValByVarName = {Age Dependency Ratio=-888888888, Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent=37.6, GINI Index of Income Inequality Households=0.6135}
 
       // combine user inputted content with API results
       ArrayList<ArrayList<String>> csv = new ArrayList<>();
-
-      for (Map.Entry<String, List<ImmutablePair<String, String>>> entry : results.entrySet()) {
+      for (int i = 0; i < listOfPatients.size(); i++) {
         ArrayList<String> line = new ArrayList<>();
-
-        if (content.contains(entry.getKey())) {
-          line.add(entry.getKey());  //adds the state 
-          for (ImmutablePair<String,String> pair : entry.getValue()) { //adds all the parameter values
-              line.add(pair.right); 
-          }
-          csv.add(line);
+        for (Map.Entry<String, String> entry : listOfPatients.get(i).getVarValByVarName().entrySet()) {
+          line.add(entry.getValue());
         }
+        csv.add(line);
       }
 
+      int i = 1;
       for (ArrayList<String> al : csv) {
-        writer.append(String.join(",", al));
-        writer.write(System.getProperty("line.separator"));
+        writer.append(content.get(i) + "," +String.join(",", al));
+        writer.write(System.getProperty("line.separator")); //new line
+        i++;
       }
 
       writer.flush();
@@ -502,41 +545,31 @@ public class FileController {
   }
 
   // ACS specific - split parameters into detailed and subject
-  public AcsVariablesRequest splitACSVars(ArrayList<String> parameters) {
-    AcsVariablesRequest req = new AcsVariablesRequest();
-    ArrayList<String> listOfDetailedVariables = new ArrayList<>();
-    ArrayList<String> listOfSubjectVariables = new ArrayList<>();
+  // public AcsVariablesRequest splitACSVars(ArrayList<String> parameters) {
+  //   AcsVariablesRequest req = new AcsVariablesRequest();
+  //   ArrayList<String> listOfDetailedVariables = new ArrayList<>();
+  //   ArrayList<String> listOfSubjectVariables = new ArrayList<>();
 
-    //if parameter starts with S it is a Subject query
-    for (String parameter : parameters) {
-      String varId = Variables.VAR_ID_BY_NAME.get(parameter);
-      if (varId.charAt(0) == 'S') {
-        listOfSubjectVariables.add(parameter);
-      } else {
-        listOfDetailedVariables.add(parameter);
-      }
-    }
+  //   //if parameter starts with S it is a Subject query
+  //   for (String parameter : parameters) {
+  //     String varId = Variables.VAR_ID_BY_NAME.get(parameter);
+  //     if (varId.charAt(0) == 'S') {
+  //       listOfSubjectVariables.add(parameter);
+  //     } else {
+  //       listOfDetailedVariables.add(parameter);
+  //     }
+  //   }
 
-    req.setListOfDetailedVariables(listOfDetailedVariables.toArray(new String[listOfDetailedVariables.size()]));
-    req.setListOfSubjectVariables(listOfSubjectVariables.toArray(new String[listOfSubjectVariables.size()]));
+  //   req.setListOfDetailedVariables(listOfDetailedVariables.toArray(new String[listOfDetailedVariables.size()]));
+  //   req.setListOfSubjectVariables(listOfSubjectVariables.toArray(new String[listOfSubjectVariables.size()]));
 
-    return req;
-  }
-
-  // process acs database queries
-  // public void acs(Resource resource, ArrayList<String> parameters, ArrayList<String> content) {
-
-  //   AcsVariablesRequest req = splitACSVars(parameters);
-
-  //   Map<String, List<ImmutablePair<String, String>>> results = acsApiService.makeAcsGetRequest(req);
-
-  //   populateCSV(resource, parameters, results, content);
+  //   return req;
   // }
 
   @GetMapping("/downloadFile/{fileName:.+}")
   public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
-    // Load file as Resource
-    Resource resource = fileStorageService.loadFileAsResource(fileName);
+    //converts user inputted file to an arraylist of strings for each line in file
+    ArrayList<String> content = csvtoList(resource);
 
     // Try to determine file's content type
     String contentType = null;
@@ -551,15 +584,55 @@ public class FileController {
       contentType = "application/octet-stream";
     }
 
-    ArrayList<String> content = csvtoList(resource);
+    // Now the user wants to download the file with the variables he/she has chosen previously. 
+    //Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
 
-    // append acs data to user's file - using example query first
-    ArrayList<String> parameters = new ArrayList<>();
-    parameters.add("GINI Index of Income Inequality Households");
-    parameters.add("Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent");
-    parameters.add("Age Dependency Ratio");
+    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to store the data we want from all 
+    //data sources (See PatientInfo.java). 
+    //Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information 
+    //(E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services below.
 
-    // acs(resource, parameters, content);
+    List<PatientInfo> listOfPatients = new ArrayList<>();
+
+    try {
+      Map<String, List<String>> inputMap = csvToMap(resource.getFile());
+      System.out.println(inputMap);
+      
+      listOfPatients = makeListOfPatients(inputMap, content.size()-1);
+
+      // System.out.println("listOfPatients " + listOfPatients.size());
+      // for (PatientInfo p : listOfPatients) {
+      //   System.out.println("county " + p.getCounty());
+      //   System.out.println("tract " + p.getTract());
+      //   System.out.println("state " + p.getState());
+      // }
+
+    } catch (FileNotFoundException fne) {
+      System.out.println(fne.getMessage());
+    } catch (IOException io) {
+      System.out.println(io.getMessage());
+    }
+
+    String[] detailed = {"GINI Index of Income Inequality Households", "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent"};
+    String[] subject = {"Age Dependency Ratio"};
+
+    // ACS Request 
+    //listOfPatients = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
+    listOfPatients = acsApiService.makeAcsGetRequest(detailed, subject, listOfPatients);
+    
+    // SSDI Request (NEED TO TEST)
+    // if (chosenVariablesRequest.isRequestedSsdiInfo()) {
+    //   results = ssdiService.getSsdiRecords(listOfPatients);
+    // }
+
+    // BMI Request (NEED TO TEST)
+    // if (chosenVariablesRequest.isRequestedBmiInfo()) {
+    //   results = bmiService.getBmiInfo(listOfPatients);
+    // }
+
+    // TODO: After this, listOfPatients variable should have the information it needs to make the CSV File the user wants. Can convert listOfPatients to a CSV File, and then pass it back to the user
+
+    populateCSV(resource, content, listOfPatients); 
 
     return ResponseEntity.ok().contentType(MediaType.parseMediaType(contentType))
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
