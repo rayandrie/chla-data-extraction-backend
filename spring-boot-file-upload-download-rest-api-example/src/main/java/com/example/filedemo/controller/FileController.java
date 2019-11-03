@@ -272,16 +272,8 @@ public class FileController {
       resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
 
       //parse censusTract.csv then combine/append that file to input file
-      ArrayList<String> censusFileList = csvtoList(censusResource); // **strings delinated by "" like: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
+      ArrayList<String> censusFileList = csvtoList(censusResource); // **strings seperated by "" like: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
       ArrayList<String> inputFileList = csvtoList(resource);
-
-      
-      //   System.out.println("-------------");
-
-      // for (String s : inputFileList) {
-      //   System.out.println(s);
-      // }
-
 
       // census: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
       // -------------
@@ -373,11 +365,13 @@ public class FileController {
       }
 
       //bmi
-      if (map.containsKey("weight")) {
-        p.setWeight(map.get("weight").get(i));
+      if (map.containsKey("weight(kg)")) {
+        p.setWeight(map.get("weight(kg)").get(i));
+        System.out.println("from func " + map.get("weight(kg)").get(i));
       }
-      if (map.containsKey("height")) {
-        p.setHeight(map.get("height").get(i));
+      if (map.containsKey("height(cm)")) {
+        p.setHeight(map.get("height(cm)").get(i));
+        System.out.println("from func " + map.get("height(cm)").get(i));
       }
       if (map.containsKey("gender")) {
         p.setGender(map.get("gender").get(i));
@@ -385,8 +379,8 @@ public class FileController {
       if (map.containsKey("date of measurement")) {
         p.setDateOfMeasurement(map.get("date of measurement").get(i));
       }
-      if (map.containsKey("dob")) {
-        p.setDob(map.get("dob").get(i));
+      if (map.containsKey("date of birth")) {
+        p.setDob(map.get("date of birth").get(i));
       }
       patients.add(p);
     }
@@ -514,6 +508,15 @@ public class FileController {
       for (String s : listOfPatients.get(0).getVarValByVarName().keySet()) {
         parameters.add(s);
       }
+      if (listOfPatients.get(0).getBmi()!= null && listOfPatients.get(0).getZScore()!= null && listOfPatients.get(0).getPercentile()!= null) {      
+        parameters.add("bmi");
+        parameters.add("zscore");
+        parameters.add("percentile");
+      }
+      if (listOfPatients.get(0).getVitalInformation() != null && listOfPatients.get(0).getDateOfDeath() != null) {
+        parameters.add("vital information");
+        parameters.add("date of death");
+      }
       String headers = content.get(0) + "," + String.join(",", parameters);
       writer.append(headers);
       writer.write(System.getProperty("line.separator")); //new line
@@ -524,12 +527,28 @@ public class FileController {
       ArrayList<ArrayList<String>> csv = new ArrayList<>();
       for (int i = 0; i < listOfPatients.size(); i++) {
         ArrayList<String> line = new ArrayList<>();
-        for (Map.Entry<String, String> entry : listOfPatients.get(i).getVarValByVarName().entrySet()) {
-          line.add(entry.getValue());
+        //acs
+        if (listOfPatients.get(i).getVarValByVarName() != null) {
+          for (Map.Entry<String, String> entry : listOfPatients.get(i).getVarValByVarName().entrySet()) {
+            line.add(entry.getValue());
+          }
         }
+        //bmi
+        if (listOfPatients.get(i).getBmi()!= null && listOfPatients.get(i).getZScore()!= null && listOfPatients.get(i).getPercentile()!= null) {
+          line.add(listOfPatients.get(i).getBmi());
+          line.add(listOfPatients.get(i).getZScore());
+          line.add(listOfPatients.get(i).getPercentile());   
+        }
+        //ssdi
+        if (listOfPatients.get(i).getVitalInformation() != null && listOfPatients.get(i).getDateOfDeath() != null) {
+          line.add(listOfPatients.get(i).getVitalInformation());
+          line.add(listOfPatients.get(i).getDateOfDeath());          
+        }
+
         csv.add(line);
       }
 
+      //combines generated data with previous input content
       int i = 1;
       for (ArrayList<String> al : csv) {
         writer.append(content.get(i) + "," +String.join(",", al));
@@ -600,13 +619,6 @@ public class FileController {
       
       listOfPatients = makeListOfPatients(inputMap, content.size()-1);
 
-      // System.out.println("listOfPatients " + listOfPatients.size());
-      // for (PatientInfo p : listOfPatients) {
-      //   System.out.println("county " + p.getCounty());
-      //   System.out.println("tract " + p.getTract());
-      //   System.out.println("state " + p.getState());
-      // }
-
     } catch (FileNotFoundException fne) {
       System.out.println(fne.getMessage());
     } catch (IOException io) {
@@ -622,13 +634,15 @@ public class FileController {
     
     // SSDI Request (NEED TO TEST)
     // if (chosenVariablesRequest.isRequestedSsdiInfo()) {
-    //   results = ssdiService.getSsdiRecords(listOfPatients);
+    //   listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
     // }
+    listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
 
     // BMI Request (NEED TO TEST)
     // if (chosenVariablesRequest.isRequestedBmiInfo()) {
-    //   results = bmiService.getBmiInfo(listOfPatients);
+    //   listOfPatients = bmiService.getBmiInfo(listOfPatients);
     // }
+    listOfPatients = bmiService.getBmiInfo(listOfPatients);
 
     // TODO: After this, listOfPatients variable should have the information it needs to make the CSV File the user wants. Can convert listOfPatients to a CSV File, and then pass it back to the user
 
