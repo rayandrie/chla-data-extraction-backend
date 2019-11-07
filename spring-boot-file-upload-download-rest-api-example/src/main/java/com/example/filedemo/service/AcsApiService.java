@@ -124,7 +124,7 @@ public class AcsApiService {
 
   // Generate the ACS Query for a single patient
   private String generateAcsQueryForSinglePatient(String baseUrl, String[] listOfVariables, String state, String county, String tract) {
-    if (listOfVariables.length == 0) {
+    if (listOfVariables == null || listOfVariables.length == 0) {
       return "";
     }
     

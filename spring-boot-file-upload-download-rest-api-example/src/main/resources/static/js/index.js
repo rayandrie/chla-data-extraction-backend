@@ -82,7 +82,7 @@ $(".next").click(function (event) {
 			return;
 		}
 		uploadSingleFile(files[0]);
-		downloadSingleFile();
+		// downloadSingleFile();
 		event.preventDefault();
 	}
 
@@ -177,7 +177,8 @@ function uploadSingleFile(file) {
 		if (xhr.status == 200) {
 			singleFileUploadError.style.display = "none";
 			//singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
-			//singleFileUploadSuccess.style.display = "block";
+      //singleFileUploadSuccess.style.display = "block";
+      downloadSingleFile();
 		} else {
 			//singleFileUploadSuccess.style.display = "none";
 			singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
@@ -281,11 +282,15 @@ function sendVars() {
 	// }
 
 	// xhr.send(formData)
-	var listofDetailedVariables = $('#vars').val();
+	var listofSubjectVariables = $('#vars').val();
 
 	//set up the json object
-	var obj = new Object();
-	obj.listOfDetailedVariables = listofDetailedVariables;
+  var obj = new Object();
+  // TODO: Modify below as needed
+  obj.listOfSubjectVariables = listofSubjectVariables;
+  obj.listOfDetailedVariables = [];
+  obj.requestedSsdiInfo = false;
+  obj.requestedBmiInfo = false;
 	var jsonString= JSON.stringify(obj);
 	console.log("json:\n " + jsonString);
 	

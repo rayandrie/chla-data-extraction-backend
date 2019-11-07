@@ -10,6 +10,9 @@ public class Variables {
   public static final Map<String, String> VAR_ID_BY_NAME;
   static {
     Map<String, String> map = new HashMap<String, String>();
+
+    // SUBJECT TABLE BELOW
+
     // S0101
     map.put("% of Total Population - Under 5 Years", "S0101_C02_002E");
     map.put("% of Total Population - 5 to 14 Years", "S0101_C02_020E");
@@ -28,7 +31,7 @@ public class Variables {
     map.put("% of Total Population 5 years and over - Speak language other than English", "S0601PR_C01_024E");
     map.put("% of Total Population 5 years and over - Speak English 'very well'", "S0601PR_C01_025E");
     map.put("% of Total Population 5 years and over - Speak English less than 'very well'", "S0601PR_C01_026E");
-    // S1101 - TODO: (Raymond) Get percentages
+    // S1101 - Get percentages?
     map.put("Total Households", "S1101_C01_001E");
     map.put("Average Household Size", "S1101_C01_002E");
     map.put("Average Family Size", "S1101_C01_003E");
@@ -76,6 +79,9 @@ public class Variables {
     map.put("% Distribution - Grandparents living with own grandchildren under 18 years in households", "S1002_C02_001E");
     map.put("% Distribution - Householder/Spouse responsible for grandchildren with no parent present", "S1002_C02_028E");
     map.put("% Distribution - Households with grandparents living with grandchildren", "S1002_C02_030E");
+
+    // DETAILED TABLE BELOW
+
     // B25071
     map.put("Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent", "B25071_001E");
     // B19083

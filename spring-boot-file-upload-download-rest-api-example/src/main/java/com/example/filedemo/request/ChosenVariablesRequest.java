@@ -11,6 +11,15 @@ public class ChosenVariablesRequest {
   // BMI Param
   private boolean requestedBmiInfo;
 
+  public ChosenVariablesRequest() { }
+
+  public ChosenVariablesRequest(ChosenVariablesRequest cvr) {
+    this.listOfDetailedVariables = cvr.listOfDetailedVariables.clone();
+    this.listOfSubjectVariables = cvr.listOfSubjectVariables.clone();
+    this.requestedSsdiInfo = cvr.requestedSsdiInfo;
+    this.requestedBmiInfo = cvr.requestedBmiInfo;
+  }
+
   public boolean isDetailedVariablesEmpty() {
     return listOfDetailedVariables.length == 0;
   }
