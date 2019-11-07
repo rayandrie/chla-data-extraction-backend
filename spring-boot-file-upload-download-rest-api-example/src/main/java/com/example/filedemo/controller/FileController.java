@@ -24,15 +24,12 @@ import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.RequiredVariablesResponse;
 import com.example.filedemo.payload.UploadFileResponse;
-import com.example.filedemo.request.AcsVariablesRequest;
 import com.example.filedemo.request.ChosenVariablesRequest;
-import com.example.filedemo.response.acs.config.Variables;
 import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.BmiService;
 import com.example.filedemo.service.FileStorageService;
 import com.example.filedemo.service.SsdiService;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +107,7 @@ public class FileController {
     }
 
     // Save the variables that user requested, so that we can use it later when the user uploads file
-    this.chosenVariablesRequest = req; // Need deep copy?
+    this.chosenVariablesRequest = new ChosenVariablesRequest(req);
 
     Set<String> requiredVars = new HashSet<String>();
     requiredVars.add("Unique ID");
@@ -204,6 +201,7 @@ public class FileController {
       }
     //}
 
+    // TODO: Uncomment this when SSDI and BMI Variables added to the front-end
     /*if (chosenVariablesRequest.isRequestedSsdiInfo()) {
       String[] vars = {"First Name", "Middle Initial", "Last Name", "Date of Birth (MM/DD/YYYY)"};
       if (!inputFileValidation(file, vars)) {
@@ -224,13 +222,13 @@ public class FileController {
 
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
-
-    // TODO: Need to create the temp CSV file that only has address, city, state and zipcode so that we can get census tract from user. 
-    //Can store in fileStorageService as well I guess? 
-    //After doing so, can comment out below (Pass this temp CSV File as a File object and call it 'addressFile' so it can be used below).
     
     try {
       Path path = Paths.get("..\\temp.csv");
+      // Delete file if it exists
+      if (path.toFile().exists()) {
+        Files.delete(path);
+      }
       File tempFile = null;   
       try   {  
         Path p = Files.createFile(path);   
@@ -252,6 +250,9 @@ public class FileController {
      byte[] updatedAddressFile = acsApiService.getCensusTracts(tempFile);
 
       Path censusPath = Paths.get("..\\censusTract.csv");
+      if (censusPath.toFile().exists()) {
+        Files.delete(censusPath);
+      }
       File censusFile = null;   
       try  {  
         Path p = Files.createFile(censusPath);   
@@ -312,21 +313,6 @@ public class FileController {
       return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
 
     }
-
-    // // Get Census Tract Information (Max 10,000 Entries)
-    // Resource resource = fileStorageService.loadFileAsResource(addressFileName);
-    // File addressFile;
-    // try {
-    //   addressFile = resource.getFile();
-    // } catch (IOException e) {
-    //   e.printStackTrace();
-    //   return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
-    // }
-
-
-    // TODO: We will receive the Census Tract Info as []byte. 
-    //Need to convert it to a CSV File (File or MultipartFile?), 
-    //then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
 
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
   }
@@ -606,9 +592,7 @@ public class FileController {
     // Now the user wants to download the file with the variables he/she has chosen previously. 
     //Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
 
-    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to store the data we want from all 
-    //data sources (See PatientInfo.java). 
-    //Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information 
+    // PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information 
     //(E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services below.
 
     List<PatientInfo> listOfPatients = new ArrayList<>();
@@ -625,26 +609,26 @@ public class FileController {
       System.out.println(io.getMessage());
     }
 
-    String[] detailed = {"GINI Index of Income Inequality Households", "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent"};
-    String[] subject = {"Age Dependency Ratio"};
+    // String[] detailed = {"GINI Index of Income Inequality Households", "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent"};
+    // String[] subject = {"Age Dependency Ratio"};
+
+    String[] detailed = this.chosenVariablesRequest.getListOfDetailedVariables();
+    String[] subject = this.chosenVariablesRequest.getListOfSubjectVariables();
 
     // ACS Request 
-    //listOfPatients = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
     listOfPatients = acsApiService.makeAcsGetRequest(detailed, subject, listOfPatients);
     
-    // SSDI Request (NEED TO TEST)
-    // if (chosenVariablesRequest.isRequestedSsdiInfo()) {
-    //   listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
-    // }
-    listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
+    // SSDI Request
+    if (chosenVariablesRequest.isRequestedSsdiInfo()) {
+      listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
+    }
+    // listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
 
-    // BMI Request (NEED TO TEST)
-    // if (chosenVariablesRequest.isRequestedBmiInfo()) {
-    //   listOfPatients = bmiService.getBmiInfo(listOfPatients);
-    // }
-    listOfPatients = bmiService.getBmiInfo(listOfPatients);
-
-    // TODO: After this, listOfPatients variable should have the information it needs to make the CSV File the user wants. Can convert listOfPatients to a CSV File, and then pass it back to the user
+    // BMI Request
+    if (chosenVariablesRequest.isRequestedBmiInfo()) {
+      listOfPatients = bmiService.getBmiInfo(listOfPatients);
+    }
+    // listOfPatients = bmiService.getBmiInfo(listOfPatients);
 
     populateCSV(resource, content, listOfPatients); 
 
