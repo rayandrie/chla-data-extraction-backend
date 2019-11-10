@@ -313,17 +313,6 @@ public class FileController {
 
     }
 
-    // // Get Census Tract Information (Max 10,000 Entries)
-    // Resource resource = fileStorageService.loadFileAsResource(addressFileName);
-    // File addressFile;
-    // try {
-    //   addressFile = resource.getFile();
-    // } catch (IOException e) {
-    //   e.printStackTrace();
-    //   return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
-    // }
-
-
     // TODO: We will receive the Census Tract Info as []byte. 
     //Need to convert it to a CSV File (File or MultipartFile?), 
     //then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
@@ -475,13 +464,6 @@ public class FileController {
     try {
       FileWriter writer = new FileWriter(temp, false);
      
-      //writes the titles (parameters like address, zip code, etc.)
-      // for (String s : map.keySet()) {
-      //   writer.append(s);
-      //   writer.append(",");
-      // }
-      // writer.write(System.getProperty("line.separator"));
-      
       //writes the value/ element i of the list to the current line
       for (int i = 0; i < numRows; i++) {
         for (Map.Entry<String, List<String>> e : map.entrySet()) {
@@ -549,7 +531,7 @@ public class FileController {
       }
 
       //combines generated data with previous input content
-      int i = 1;
+      int i = 1; //iterator at location i on original csv list
       for (ArrayList<String> al : csv) {
         writer.append(content.get(i) + "," +String.join(",", al));
         writer.write(System.getProperty("line.separator")); //new line
@@ -562,28 +544,6 @@ public class FileController {
       e.printStackTrace();
     }
   }
-
-  // ACS specific - split parameters into detailed and subject
-  // public AcsVariablesRequest splitACSVars(ArrayList<String> parameters) {
-  //   AcsVariablesRequest req = new AcsVariablesRequest();
-  //   ArrayList<String> listOfDetailedVariables = new ArrayList<>();
-  //   ArrayList<String> listOfSubjectVariables = new ArrayList<>();
-
-  //   //if parameter starts with S it is a Subject query
-  //   for (String parameter : parameters) {
-  //     String varId = Variables.VAR_ID_BY_NAME.get(parameter);
-  //     if (varId.charAt(0) == 'S') {
-  //       listOfSubjectVariables.add(parameter);
-  //     } else {
-  //       listOfDetailedVariables.add(parameter);
-  //     }
-  //   }
-
-  //   req.setListOfDetailedVariables(listOfDetailedVariables.toArray(new String[listOfDetailedVariables.size()]));
-  //   req.setListOfSubjectVariables(listOfSubjectVariables.toArray(new String[listOfSubjectVariables.size()]));
-
-  //   return req;
-  // }
 
   @GetMapping("/downloadFile/{fileName:.+}")
   public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
