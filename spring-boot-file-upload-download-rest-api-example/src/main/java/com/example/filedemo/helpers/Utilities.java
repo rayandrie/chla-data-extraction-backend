@@ -9,6 +9,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Utilities {
+  public static String getTodayDate() {
+    // MM/DD/YYYY
+    Date date = new Date();
+    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+    String dateStr = formatter.format(date);
+    return dateStr;
+  }
+
   public static Map<String, String> parseDOB(String dob) {
     // MM/DD/YYYY
     Date date = new Date();

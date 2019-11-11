@@ -29,16 +29,13 @@ public class BmiService {
     for (int i = 0; i < listOfPatients.size(); i++) {
       PatientInfo patient = listOfPatients.get(i);
       
-      // Check if patient is more than 20 years old at time of measurement. If so, then skip.
-      boolean isYoungerThan20 = Utilities.ageIsLessThan20(patient.getDob(), patient.getDateOfMeasurement());
-      if (!isYoungerThan20) {
-        continue;
-      }
-      
       BmiInfoResponse bmiData = makeBmiCall(patient.getWeight(), 
         patient.getHeight(), patient.getGender(), 
         patient.getDob(), patient.getDateOfMeasurement()
       );
+
+      // if error in getting results, skip over patient
+      if (bmiData == null) continue;
 
       // Append the response to the PatientInfo Object
       patient.setBmi(bmiData.getBmi());
@@ -52,6 +49,17 @@ public class BmiService {
   public BmiInfoResponse makeBmiCall(String weight, String height, String gender, String dob, String dateOfMeasurement) {
     // Process the request at https://zscore.research.chop.edu/result.php with form params
     Document document;
+
+    // If date of measurement is empty, then just fill with today's date
+    if (dateOfMeasurement == null || dateOfMeasurement.isEmpty() || dateOfMeasurement.equals("")) {
+      dateOfMeasurement = Utilities.getTodayDate();
+    }
+
+    // Also, check if patient is more than 20 years old at time of measurement. If so, then skip.
+    boolean isYoungerThan20 = Utilities.ageIsLessThan20(dob, dateOfMeasurement);
+    if (!isYoungerThan20) {
+      return null;
+    }
 
     try {
       Response res = Jsoup.connect(URL_ZSCORE)

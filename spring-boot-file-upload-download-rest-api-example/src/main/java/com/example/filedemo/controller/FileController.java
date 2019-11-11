@@ -192,8 +192,8 @@ public class FileController {
 
      // User must make Headers EXACTLY the same as below
      String[] acsVars = {"Unique ID", "Address", "Zip Code", "State", "City"};
-     String[] ssdiVars = {"First Name", "Middle Initial", "Last Name", "Date of Birth"};
-     String[] bmiVars = {"Height(cm)", "Weight(kg)", "Gender", "Date of Birth", "Date of Measurement"};
+     String[] ssdiVars = {"Unique ID", "First Name", "Middle Initial", "Last Name", "Date of Birth"};
+     String[] bmiVars = {"Unique ID", "Height(cm)", "Weight(kg)", "Gender", "Date of Birth", "Date of Measurement"};
 
     // String[] vars = null;
     if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
