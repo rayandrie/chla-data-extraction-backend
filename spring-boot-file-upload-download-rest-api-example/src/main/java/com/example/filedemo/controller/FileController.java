@@ -24,15 +24,12 @@ import com.example.filedemo.internal.PatientInfo;
 import com.example.filedemo.payload.BasicResponse;
 import com.example.filedemo.payload.RequiredVariablesResponse;
 import com.example.filedemo.payload.UploadFileResponse;
-import com.example.filedemo.request.AcsVariablesRequest;
 import com.example.filedemo.request.ChosenVariablesRequest;
-import com.example.filedemo.response.acs.config.Variables;
 import com.example.filedemo.service.AcsApiService;
 import com.example.filedemo.service.BmiService;
 import com.example.filedemo.service.FileStorageService;
 import com.example.filedemo.service.SsdiService;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,13 +107,12 @@ public class FileController {
     }
 
     // Save the variables that user requested, so that we can use it later when the user uploads file
-    this.chosenVariablesRequest = req; // Need deep copy?
+    this.chosenVariablesRequest = req;
 
     Set<String> requiredVars = new HashSet<String>();
     requiredVars.add("Unique ID");
 
     // Analyze the variables that the user requested, and return a response of corresponding information that the user needs to put in his/her CSV file
-
     // Check whether User wants ACS Params
     if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
       requiredVars.add("Address");
@@ -140,6 +136,11 @@ public class FileController {
       requiredVars.add("Date of Measurement");
     }
 
+    // System.out.println(chosenVariablesRequest.isRequestedBmiInfo());
+    // System.out.println(chosenVariablesRequest.isRequestedSsdiInfo());
+    // System.out.println(chosenVariablesRequest.isDetailedVariablesEmpty());
+    // System.out.println(chosenVariablesRequest.isSubjectVariablesEmpty());
+
     Object[] requiredVarsArr = requiredVars.toArray();
     String[] stringArray = Arrays.copyOf(requiredVarsArr, requiredVarsArr.length, String[].class);
 
@@ -148,7 +149,7 @@ public class FileController {
     return requiredVariablesResponse;
   }
 
-  //converts user inputed MultipartFile into a File
+  //converts user inputed MultipartFile into a File type
   public static File convertToFile(MultipartFile file) throws IOException {
     File convFile = new File(file.getOriginalFilename());
     convFile.createNewFile();
@@ -185,7 +186,6 @@ public class FileController {
 
   @PostMapping("/uploadFile")
   public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
-
      if (file.isEmpty()) {
       return new UploadFileResponse("Internal Server Error", "empty file", "text/csv", 0);
      }
@@ -197,26 +197,30 @@ public class FileController {
         System.out.println(e);
      }
 
-   // if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
-      String[] vars = {"Unique ID", "Address", "Zip Code", "State (Abbreviation Format)", "City"};
+    String[] vars = null;
+    if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+      String[] vars1 = {"Unique ID", "Address", "Zip Code", "State (Abbreviation Format)", "City"};
+      vars = vars1;
       if (!inputFileValidation(f, vars)) {
         return new UploadFileResponse("Internal Server Error", "missing an ACS variable", "text/csv", 0);
       }
-    //}
+    }
 
-    /*if (chosenVariablesRequest.isRequestedSsdiInfo()) {
-      String[] vars = {"First Name", "Middle Initial", "Last Name", "Date of Birth (MM/DD/YYYY)"};
-      if (!inputFileValidation(file, vars)) {
+    if (chosenVariablesRequest.isRequestedSsdiInfo()) {
+      String[] vars1 = {"First Name", "Middle Initial", "Last Name", "Date of Birth (MM/DD/YYYY)"};
+      vars = vars1;
+      if (!inputFileValidation(f, vars)) {
         return new UploadFileResponse("Internal Server Error", "missing a SSDI variable", "text/csv", 0);
       }
     }
 
     if (chosenVariablesRequest.isRequestedBmiInfo()) {
-      String[] vars = {"Height (cm)", "Weight (kg)", "Gender ('male' or 'female')", "Date of Birth (MM/DD/YYYY)", "Date of Measurement"};
-      if (!inputFileValidation(file, vars)) {
+      String[] vars1 = {"Height (cm)", "Weight (kg)", "Gender ('male' or 'female')", "Date of Birth (MM/DD/YYYY)", "Date of Measurement"};
+      vars = vars1;
+      if (!inputFileValidation(f, vars)) {
         return new UploadFileResponse("Internal Server Error", "missing a BMI variable", "text/csv", 0);
       }
-    } */
+    }
 
     String fileName = fileStorageService.storeFile(file);
     this.file = file;
@@ -224,15 +228,17 @@ public class FileController {
 
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
-
-    // TODO: Need to create the temp CSV file that only has address, city, state and zipcode so that we can get census tract from user. 
-    //Can store in fileStorageService as well I guess? 
-    //After doing so, can comment out below (Pass this temp CSV File as a File object and call it 'addressFile' so it can be used below).
     
     try {
       Path path = Paths.get("..\\temp.csv");
+      // Delete file if it exists
+      if (path.toFile().exists()) {
+        Files.delete(path);
+      }
+      
+      //if ACS, create temp file with only the inputted address, city, state and zipcode
       File tempFile = null;   
-      try   {  
+      try {  
         Path p = Files.createFile(path);   
         tempFile = p.toFile(); 
       }   
@@ -240,18 +246,17 @@ public class FileController {
         e.printStackTrace();  
       }  
 
-      //if ACS, create temp file with only the inputted address, city, state and zipcode
-      //if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
-        //String[] vars = {"Unique ID", "Address", "Zip Code", "State (Abbreviation Format)", "City"};
-     
-          populateTempCSV(tempFile, f, Arrays.asList(vars));
-     
-        //}
+      if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+        populateTempCSV(tempFile, f, Arrays.asList(vars));
+      }
 
       //updatedAddressFile array has the census track info 
      byte[] updatedAddressFile = acsApiService.getCensusTracts(tempFile);
 
       Path censusPath = Paths.get("..\\censusTract.csv");
+      if (censusPath.toFile().exists()) {
+        Files.delete(censusPath);
+      }
       File censusFile = null;   
       try  {  
         Path p = Files.createFile(censusPath);   
@@ -313,10 +318,6 @@ public class FileController {
 
     }
 
-    // TODO: We will receive the Census Tract Info as []byte. 
-    //Need to convert it to a CSV File (File or MultipartFile?), 
-    //then parse and append the Census Tract Information (State, County and Tract) to the user-uploaded CSV File. 
-
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
   }
 
@@ -337,7 +338,7 @@ public class FileController {
     for (int i = 0; i < num; i++) {
       PatientInfo p = new PatientInfo();
       if (map.containsKey("tract")) {
-        String tract = map.get("tract").get(i); //11 digits: first 2 digits = state, next 3 = county, next 6 is tract
+        String tract = map.get("tract").get(i); //census tract is 11 digits: first 2 digits = state, next 3 = county, next 6 is tract
         p.setState(tract.substring(0,2));
         p.setCounty(tract.substring(2,5));
         p.setTract(tract.substring(5,11));
@@ -356,11 +357,9 @@ public class FileController {
       //bmi
       if (map.containsKey("weight(kg)")) {
         p.setWeight(map.get("weight(kg)").get(i));
-        System.out.println("from func " + map.get("weight(kg)").get(i));
       }
       if (map.containsKey("height(cm)")) {
         p.setHeight(map.get("height(cm)").get(i));
-        System.out.println("from func " + map.get("height(cm)").get(i));
       }
       if (map.containsKey("gender")) {
         p.setGender(map.get("gender").get(i));
@@ -501,7 +500,7 @@ public class FileController {
       }
       String headers = content.get(0) + "," + String.join(",", parameters);
       writer.append(headers);
-      writer.write(System.getProperty("line.separator")); //new line
+      writer.write(System.getProperty("line.separator")); //write new line
 
       //acs gives: ca varValByVarName = {Age Dependency Ratio=-888888888, Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent=37.6, GINI Index of Income Inequality Households=0.6135}
 
@@ -566,16 +565,13 @@ public class FileController {
     // Now the user wants to download the file with the variables he/she has chosen previously. 
     //Given that user has uploaded the (correct) file, we need to make the corresponding requests to get the data.
 
-    // TODO: From the CSV File (With Updated Census Information), need to parse it and get a List<PatientInfo> listOfPatients that will be used to store the data we want from all 
-    //data sources (See PatientInfo.java). 
-    //Basically, PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information 
+    // PatientInfo object will have all the initial information (E.g. First Name, Last Name, etc.) provided by the user, and then appended information 
     //(E.g. ACS Variables, SSDI Info, etc.) after getting them from the respective services below.
 
     List<PatientInfo> listOfPatients = new ArrayList<>();
 
     try {
       Map<String, List<String>> inputMap = csvToMap(resource.getFile());
-      System.out.println(inputMap);
       
       listOfPatients = makeListOfPatients(inputMap, content.size()-1);
 
@@ -585,26 +581,24 @@ public class FileController {
       System.out.println(io.getMessage());
     }
 
-    String[] detailed = {"GINI Index of Income Inequality Households", "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent"};
-    String[] subject = {"Age Dependency Ratio"};
+    // String[] detailed = {"GINI Index of Income Inequality Households", "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent"};
+    // String[] subject = {"Age Dependency Ratio"};
+
+    String[] detailed = this.chosenVariablesRequest.getListOfDetailedVariables();
+    String[] subject = this.chosenVariablesRequest.getListOfSubjectVariables();
 
     // ACS Request 
-    //listOfPatients = acsApiService.makeAcsGetRequest(chosenVariablesRequest.getListOfDetailedVariables(), chosenVariablesRequest.getListOfSubjectVariables(), listOfPatients);
     listOfPatients = acsApiService.makeAcsGetRequest(detailed, subject, listOfPatients);
     
-    // SSDI Request (NEED TO TEST)
-    // if (chosenVariablesRequest.isRequestedSsdiInfo()) {
-    //   listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
-    // }
-    listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
+    // SSDI Request
+    if (chosenVariablesRequest.isRequestedSsdiInfo()) {
+      listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
+    }
 
-    // BMI Request (NEED TO TEST)
-    // if (chosenVariablesRequest.isRequestedBmiInfo()) {
-    //   listOfPatients = bmiService.getBmiInfo(listOfPatients);
-    // }
-    listOfPatients = bmiService.getBmiInfo(listOfPatients);
-
-    // TODO: After this, listOfPatients variable should have the information it needs to make the CSV File the user wants. Can convert listOfPatients to a CSV File, and then pass it back to the user
+    // BMI Request
+    if (chosenVariablesRequest.isRequestedBmiInfo()) {
+      listOfPatients = bmiService.getBmiInfo(listOfPatients);
+    }
 
     populateCSV(resource, content, listOfPatients); 
 
@@ -612,5 +606,4 @@ public class FileController {
         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
         .body(resource);
   }
-
 }

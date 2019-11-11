@@ -104,9 +104,9 @@ public class AcsApiService {
 
       // Generate the query for the particular patient
       String subjectQuery = generateAcsQueryForSinglePatient(BASE_URL_ACS_SUBJECT, listOfSubjectVariables, patientStateParam, patientCountyParam, patientTractParam);
-       System.out.println("Subject Query: " + subjectQuery);
+      // System.out.println("Subject Query: " + subjectQuery);
       String detailedQuery = generateAcsQueryForSinglePatient(BASE_URL_ACS_DETAILED, listOfDetailedVariables, patientStateParam, patientCountyParam, patientTractParam);
-       System.out.println("Detailed Query: " + detailedQuery);
+      // System.out.println("Detailed Query: " + detailedQuery);
 
       // Create the Map that will be appended to the PatientInfo Variable
       LinkedHashMap<String, String> varValByVarName = new LinkedHashMap<String, String>();
@@ -124,7 +124,7 @@ public class AcsApiService {
 
   // Generate the ACS Query for a single patient
   private String generateAcsQueryForSinglePatient(String baseUrl, String[] listOfVariables, String state, String county, String tract) {
-    if (listOfVariables.length == 0) {
+    if (listOfVariables == null || listOfVariables.length == 0) {
       return "";
     }
     

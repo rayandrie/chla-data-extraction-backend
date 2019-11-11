@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>Public Databases</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/main.css" />
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <noscript>
+        <h2>Sorry! Your browser doesn't support Javascript</h2>
+    </noscript>
+
+    <div class="w3-bar w3-black w3-hide-small" >
+        <a href="newindex.html" class="w3-bar-item w3-button" style = "font-weight: bold;">v2 User Interface</a>
+        <a href="index.html" class="w3-bar-item w3-button">Home</a>
+        <a href="contact.html" class="w3-bar-item w3-button">Contact</a>
+        <a href="contact.html" class="w3-bar-item w3-button">File Formatting</a>
+        <a href="contact.html" class="w3-bar-item w3-button">About</a>
+    </div>
+
+    <div class="row1">
+        <div class="text-container1">
+            <h1 class="step">Welcome!</h1>
+            <h2>THE USC DATABASE HELPER TOOL</h2>
+            <p class="description"> This tool was built to allows researchers to batch queries on public databases and
+                online
+                calculators. It was developed by Sarah Lu, Raymond Andriejanssen, and Sophia Hu as part
+                of the CS 401 class at USC. Their project mentor is Juan Espinoza, MD. You can contact the
+                project team <a id="contact" href='contact.html'>here</a>.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="row2">
+        <div class="text-container2">
+            <div class="upload-header">
+                <h1 class="step">Step 1:</h1>
+            </div>
+
+            <h3>CHOOSE THE DATABASE OR CALCULATOR YOU WANT TO QUERY FROM THE DROPDOWN MENU: </h3>
+            <div class="dropdown">
+                <button class="dropbtn">Choose a database
+                    <i class="fa fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="steps2-3.html">ACS</a>
+                    <a href="#">Database 2</a>
+                    <a href="#">Database 3</a>
+                </div>
+            </div>
+            <p>You can only query one database at a time. For a complete list of databases,<br> their
+                descriptions, and links to the original source, click here
+            </p>
+        </div>
+    </div>
+    <script>
+        /* When the user clicks on the button, 
+        toggle between hiding and showing the dropdown content */
+        function myFunction() {
+            document.getElementById("myDropdown").classList.toggle("show");
+        }
+
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function (event) {
+            if (!event.target.matches('.dropbtn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                var i;
+                for (i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="/js/step1.js" ></script>
+</body>
+
+</html>
