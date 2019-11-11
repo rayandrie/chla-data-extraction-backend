@@ -55,7 +55,7 @@ public class BmiService {
       dateOfMeasurement = Utilities.getTodayDate();
     }
 
-    // Also, check if patient is more than 20 years old at time of measurement. If so, then skip.
+    // Also, check if patient is more than 20 years old at time of measurement. If so, then return null, so that we can move on to the next patient.
     boolean isYoungerThan20 = Utilities.ageIsLessThan20(dob, dateOfMeasurement);
     if (!isYoungerThan20) {
       return null;
