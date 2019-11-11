@@ -88,13 +88,6 @@ public class FileController {
     return new BasicResponse(201, "Success", "Hit /testing endpoint");
   }
 
-  // @PostMapping("/testBmiInfo")
-  // public BmiInfoResponse getBmiInfo(@RequestBody BmiInfoRequest req) {
-  //   BmiInfoResponse res = bmiService.getBmiInfo(req);
-
-  //   return res;
-  // }
-
   /* 
     POST Endpoint for User to choose variables he/she wants for his/her CSV File. 
     Response will be a list of variables user will need to include in his/her initial 
@@ -117,7 +110,7 @@ public class FileController {
     if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
       requiredVars.add("Address");
       requiredVars.add("City");
-      requiredVars.add("State (Abbreviation Format)");
+      requiredVars.add("State");
       requiredVars.add("Zip Code");
     }
     // Check whether User wants SSDI Params
@@ -129,8 +122,8 @@ public class FileController {
     }
     // Check whether User wants BMI Params
     if (chosenVariablesRequest.isRequestedBmiInfo()) {
-      requiredVars.add("Height (cm)");
-      requiredVars.add("Weight (kg)");
+      requiredVars.add("Height(cm)");
+      requiredVars.add("Weight(kg)");
       requiredVars.add("Gender ('male' or 'female')");
       requiredVars.add("Date of Birth (MM/DD/YYYY)");
       requiredVars.add("Date of Measurement");
@@ -160,7 +153,7 @@ public class FileController {
   }
 
   //get the first row (titles) and check if it has all the required variables
-  public boolean inputFileValidation(@RequestParam("file") File file, String[] requiredVariables) {
+  public String inputFileValidation(@RequestParam("file") File file, String[] requiredVariables) {
       try (BufferedReader br = new BufferedReader(new FileReader(file))) {
         String first;
         if ((first = br.readLine()) != null) {
@@ -171,7 +164,7 @@ public class FileController {
 
           for (String s : requiredVariables) {
             if (!titles.contains(s)) {
-              return false;
+              return s;
             }
           }
         }
@@ -181,13 +174,13 @@ public class FileController {
         System.out.println("uploadFile error");
 
     }
-    return true;
+    return null;
   }
 
   @PostMapping("/uploadFile")
   public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
      if (file.isEmpty()) {
-      return new UploadFileResponse("Internal Server Error", "empty file", "text/csv", 0);
+      return new UploadFileResponse("Internal Server Error", "Empty file - Please provide us with a properly-formatted, populated CSV File for us to work with.", "text/csv", 0);
      }
 
      File f = null; 
@@ -197,28 +190,33 @@ public class FileController {
         System.out.println(e);
      }
 
-    String[] vars = null;
+     // User must make Headers EXACTLY the same as below
+     String[] acsVars = {"Unique ID", "Address", "Zip Code", "State", "City"};
+     String[] ssdiVars = {"First Name", "Middle Initial", "Last Name", "Date of Birth"};
+     String[] bmiVars = {"Height(cm)", "Weight(kg)", "Gender", "Date of Birth", "Date of Measurement"};
+
+    // String[] vars = null;
     if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
-      String[] vars1 = {"Unique ID", "Address", "Zip Code", "State (Abbreviation Format)", "City"};
-      vars = vars1;
-      if (!inputFileValidation(f, vars)) {
-        return new UploadFileResponse("Internal Server Error", "missing an ACS variable", "text/csv", 0);
+      // vars = vars1;
+      String missingHeader = inputFileValidation(f, acsVars);
+      if (missingHeader != null) {
+        return new UploadFileResponse("Internal Server Error", "You are missing an ACS variable: " + missingHeader, "text/csv", 0);
       }
     }
 
     if (chosenVariablesRequest.isRequestedSsdiInfo()) {
-      String[] vars1 = {"First Name", "Middle Initial", "Last Name", "Date of Birth (MM/DD/YYYY)"};
-      vars = vars1;
-      if (!inputFileValidation(f, vars)) {
-        return new UploadFileResponse("Internal Server Error", "missing a SSDI variable", "text/csv", 0);
+      // vars = vars1;
+      String missingHeader = inputFileValidation(f, ssdiVars);
+      if (missingHeader != null) {
+        return new UploadFileResponse("Internal Server Error", "You are missing an SSDI variable: " + missingHeader, "text/csv", 0);
       }
     }
 
     if (chosenVariablesRequest.isRequestedBmiInfo()) {
-      String[] vars1 = {"Height (cm)", "Weight (kg)", "Gender ('male' or 'female')", "Date of Birth (MM/DD/YYYY)", "Date of Measurement"};
-      vars = vars1;
-      if (!inputFileValidation(f, vars)) {
-        return new UploadFileResponse("Internal Server Error", "missing a BMI variable", "text/csv", 0);
+      // vars = vars1;
+      String missingHeader = inputFileValidation(f, bmiVars);
+      if (missingHeader != null) {
+        return new UploadFileResponse("Internal Server Error", "You are missing a BMI variable: " + missingHeader, "text/csv", 0);
       }
     }
 
@@ -229,6 +227,7 @@ public class FileController {
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
     
+    // Procedure for Getting Census Tract Info
     try {
       Path path = Paths.get("..\\temp.csv");
       // Delete file if it exists
@@ -247,7 +246,7 @@ public class FileController {
       }  
 
       if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
-        populateTempCSV(tempFile, f, Arrays.asList(vars));
+        populateTempCSV(tempFile, f, Arrays.asList(acsVars));
       }
 
       //updatedAddressFile array has the census track info 
@@ -314,7 +313,7 @@ public class FileController {
 
     } catch(Exception e) {
       e.printStackTrace();
-      return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get census tract info", "text/csv", 0);
+      return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get Census Tract Info", "text/csv", 0);
 
     }
 
@@ -580,9 +579,6 @@ public class FileController {
     } catch (IOException io) {
       System.out.println(io.getMessage());
     }
-
-    // String[] detailed = {"GINI Index of Income Inequality Households", "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent"};
-    // String[] subject = {"Age Dependency Ratio"};
 
     String[] detailed = this.chosenVariablesRequest.getListOfDetailedVariables();
     String[] subject = this.chosenVariablesRequest.getListOfSubjectVariables();
