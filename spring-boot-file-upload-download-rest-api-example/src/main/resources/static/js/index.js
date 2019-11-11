@@ -261,6 +261,15 @@ var downloadLink = document.querySelector('#downloadLink');
 //     event.preventDefault();
 // });
 
+//helper function
+function arrayRemove(arr, value) {
+
+	return arr.filter(function(ele){
+		return ele != value;
+	});
+ 
+ }
+
 function sendVars() {
 	// var formData = new FormData();
 	// formData.append("file", file);
@@ -283,14 +292,32 @@ function sendVars() {
 
 	// xhr.send(formData)
 	var listofSubjectVariables = $('#vars').val();
+	var listOfDetailedVariables = [];
+	var detailedVar1 = "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent";
+	var detailedVar2 = "GINI Index of Income Inequality Households";
+	if(listofSubjectVariables.includes(detailedVar1)){
+		listofSubjectVariables = arrayRemove(listofSubjectVariables, detailedVar1);
+		listOfDetailedVariables.push(detailedVar1);
+	}
+	if(listofSubjectVariables.includes(detailedVar2)){
+		listofSubjectVariables = arrayRemove(listofSubjectVariables, detailedVar2);
+		listOfDetailedVariables.push(detailedVar2);
+	}
 
-	//set up the json object
+  //set up the json object
   var obj = new Object();
   // TODO: Modify below as needed
   obj.listOfSubjectVariables = listofSubjectVariables;
   obj.listOfDetailedVariables = [];
+
   obj.requestedSsdiInfo = false;
   obj.requestedBmiInfo = false;
+  if(document.getElementById("BMI_switch").checked){
+	obj.requestedBmiInfo = true;
+  }
+  if(document.getElementById("SSDI_switch").checked){
+	obj.requestedSsdiInfo = true;
+  }
 	var jsonString= JSON.stringify(obj);
 	console.log("json:\n " + jsonString);
 	
