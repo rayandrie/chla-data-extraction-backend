@@ -260,9 +260,11 @@ and is wrapped around the whole page content, except for the footer in this exam
             </fieldset>
             <fieldset>
                 <h2 class="fs-title">Download</h2>
-                <h3 class="fs-subtitle">Success! You can re-download your file, which has now been populated with your
-                    query results.</h3>
-                <button id="download">
+                <!-- success or error message on last step -->
+                <h3 class="fs-subtitle" id = "success" ></h3>
+                
+                <!-- hide download button as default - only show if backend successfully returns a download file -->
+                <button id="download" style = "visibility: hidden;">
                     <a target='_blank' id="downloadLink">Download</a>
                 </button>
                 <p class="description">Something wrong? Make sure you formatted your file correctly. Still having

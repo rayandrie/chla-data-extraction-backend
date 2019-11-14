@@ -175,10 +175,18 @@ function uploadSingleFile(file) {
 		console.log(xhr.responseText);
 		var response = JSON.parse(xhr.responseText);
 		if (xhr.status == 200) {
-			singleFileUploadError.style.display = "none";
-			//singleFileUploadSuccess.innerHTML = "<p>File Uploaded Successfully.</p><p>DownloadUrl : <a href='" + response.fileDownloadUri + "' target='_blank'>" + response.fileDownloadUri + "</a></p>";
-      //singleFileUploadSuccess.style.display = "block";
-      downloadSingleFile();
+			//error from backend getting census tract info - addresses not formatted correctly, dont show download btn
+			if (xhr.responseText.includes("Error in loading CSV file needed to get census tract info")) {
+				document.querySelector('#success').innerHTML = "<p>The addresses are not formatted correctly. Please try again.</p>";
+				document.querySelector('#success').style.display = "block";
+				document.getElementById('download').style.visibility= 'hidden';
+			} else { // no errors, show success msg and download btn when ready
+				singleFileUploadError.style.display = "none";
+				document.querySelector('#success').innerHTML = "<p>Success! You can re-download your file, which has now been populated with your query results.</p>";				
+				document.querySelector('#success').style.display = "block";
+				document.getElementById('download').style.visibility= 'visible';
+				downloadSingleFile();
+			}
 		} else {
 			//singleFileUploadSuccess.style.display = "none";
 			singleFileUploadError.innerHTML = (response && response.message) || "Some Error Occurred";
@@ -192,7 +200,6 @@ function uploadSingleFile(file) {
 var singleFileUploadInput = document.querySelector('#singleFileUploadInput');
 var singleFileUploadError = document.querySelector('#singleFileUploadError');
 //var singleFileUploadSuccess = document.querySelector('#singleFileUploadSuccess');
-var download = document.querySelector('#download');
 
 // singleUploadForm.addEventListener('submit', function(event){
 //   console.log("ONSUBMIT CLICKED");
@@ -219,13 +226,14 @@ function downloadSingleFile() {
 		var response = JSON.parse(xhr.responseText);
 
 		if (xhr.status == 200) {
-			console.log("DOWNLOAD");
-
 			downloadLink.href = response.fileDownloadUri;
 			downloadLink.download = response.fileDownloadUri;
+			document.getElementById('download').style.visibility= 'visible'; //make download btn visible
 			console.log("download link:" + downloadLink.download);
 
-		} //add error checking here
+		} else {
+			console.log("error in download");
+		}
 	}
 	xhr.send();
 	event.preventDefault();
