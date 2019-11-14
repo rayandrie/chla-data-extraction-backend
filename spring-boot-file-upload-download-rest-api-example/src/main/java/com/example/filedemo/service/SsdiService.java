@@ -55,7 +55,8 @@ public class SsdiService {
   }
 
   private Document getRecordsWithInfo(String firstName, String middleInitial, String lastName, String dob) {
-    
+    // ASSUMPTION: User provides valid values for corresponding fields in the CSV File - e.g. First Name is a word, not a number, etc.
+
     // Parse DOB
     Map<String, String> dobMap = Utilities.parseDOB(dob);
 
