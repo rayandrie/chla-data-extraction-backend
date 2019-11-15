@@ -176,8 +176,12 @@ function uploadSingleFile(file) {
 		var response = JSON.parse(xhr.responseText);
 		if (xhr.status == 200) {
 			//error from backend getting census tract info - addresses not formatted correctly, dont show download btn
-			if (xhr.responseText.includes("Error in loading CSV file needed to get census tract info")) {
-				document.querySelector('#success').innerHTML = "<p>The addresses are not formatted correctly. Please try again.</p>";
+			var csvError = xhr.responseText.includes("Error in loading CSV file needed to get Census Tract Info");
+			var missing = xhr.responseText.includes("missing");
+			
+			if (csvError || missing) {
+				var json = JSON.parse(xhr.responseText);
+				document.querySelector('#success').innerHTML = "<p>" + json.fileDownloadUri + ". Please try again." + "</p>";
 				document.querySelector('#success').style.display = "block";
 				document.getElementById('download').style.visibility= 'hidden';
 			} else { // no errors, show success msg and download btn when ready
