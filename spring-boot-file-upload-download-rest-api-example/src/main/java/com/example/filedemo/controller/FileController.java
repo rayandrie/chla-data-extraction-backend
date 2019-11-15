@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -580,6 +581,9 @@ public class FileController {
       System.out.println(fne.getMessage());
     } catch (IOException io) {
       System.out.println(io.getMessage());
+    } catch (Exception e) {
+      System.out.println("Error: " + e.getLocalizedMessage());
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 
     String[] detailed = this.chosenVariablesRequest.getListOfDetailedVariables();
