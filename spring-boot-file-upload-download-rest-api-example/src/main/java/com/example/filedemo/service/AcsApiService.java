@@ -97,8 +97,19 @@ public class AcsApiService {
       String patientCountyParam = currPatient.getCounty();
       String patientTractParam = currPatient.getTract();
 
-      // We need State, County and Tract to execute the request. If we don't have it, then just skip the patient, meaning we can't get any info for that particular patient
-      if (patientStateParam == null || patientCountyParam == null || patientTractParam == null) {
+      // We need State, County and Tract to execute the request. If we don't have it, then we should just set the wanted fields to be empty string, meaning we can't get any info for that particular patient
+      if (patientStateParam == null || patientCountyParam == null || patientTractParam == null || patientStateParam.equals("") || patientCountyParam.equals("") || patientTractParam.equals("")) {
+        LinkedHashMap<String, String> varValByVarName = new LinkedHashMap<String, String>();
+        // For all subject variables, their value will be an empty string
+        for (int j = 0; j < listOfSubjectVariables.length; j++) {
+          varValByVarName.put(listOfSubjectVariables[j], "");
+        }
+        // For all detailed variables, their value will be an empty string
+        for (int j = 0; j < listOfDetailedVariables.length; j++) {
+          varValByVarName.put(listOfDetailedVariables[i], "");
+        }
+        // Put the map into our PatientInfo Object so that they can be appended to the CSV later
+        currPatient.setVarValByVarName(varValByVarName);
         continue;
       }
 

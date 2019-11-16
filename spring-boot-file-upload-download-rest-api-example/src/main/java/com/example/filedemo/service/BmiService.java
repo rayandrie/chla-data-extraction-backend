@@ -35,8 +35,13 @@ public class BmiService {
         patient.getDob(), patient.getDateOfMeasurement()
       );
 
-      // if error in getting results, skip over patient
-      if (bmiData == null) continue;
+      // if error in getting results, set empty resulting fields
+      if (bmiData == null) {
+        patient.setBmi("");
+        patient.setZScore("");
+        patient.setPercentile("");
+        continue;
+      }
 
       // Append the response to the PatientInfo Object
       patient.setBmi(bmiData.getBmi());
