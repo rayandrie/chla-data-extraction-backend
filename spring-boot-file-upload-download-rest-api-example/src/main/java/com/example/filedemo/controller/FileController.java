@@ -177,6 +177,7 @@ public class FileController {
     }
     return null;
   }
+ 
 
   @PostMapping("/uploadFile")
   public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
@@ -193,7 +194,7 @@ public class FileController {
 
      // User must make Headers EXACTLY the same as below
      String[] acsVars = {"Unique ID", "Address", "Zip Code", "State", "City"};
-     String[] ssdiVars = {"Unique ID", "First Name", "Middle Initial", "Last Name", "Date of Birth"};
+     String[] ssdiVars = {"Unique ID", "First Name", "Last Name", "Date of Birth"};
      String[] bmiVars = {"Unique ID", "Height(cm)", "Weight(kg)", "Gender", "Date of Birth", "Date of Measurement"};
 
     // String[] vars = null;
@@ -284,7 +285,7 @@ public class FileController {
 
       // census: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
       // -------------
-      // input: Unique ID, Address, City, State (Abbreviation Format), Zip Code
+      // input: Unique ID, Address, City, State, Zip Code
       // 1, 4600 Silver Hill Rd, Suitland, MD, 20746
 
       inputFileList.set(0, inputFileList.get(0)+", tract");
@@ -292,16 +293,22 @@ public class FileController {
       //combines input file with census tract file
       for (int i = 1; i < inputFileList.size(); i++) {
         String census = censusFileList.get(i-1);
-
-        //grab the census tract - last 3 like "06","067","001101"
         String[] sarr = census.split(","); 
+        //if no match for census tract, make tract null
         String tract = "";
-        for (int j = sarr.length - 4; j < sarr.length-1; j++) {
-          String trim = sarr[j].substring(1,sarr[j].length()-1); //removes quotes
-          tract += trim;
-        }
-        
+        boolean contains = !census.contains("No_Match");
+        if (contains) {
+          //grab the census tract - last 3 like "06","067","001101"
+          for (int j = sarr.length - 4; j < sarr.length-1; j++) {
+            String trim = sarr[j].substring(1,sarr[j].length()-1); //removes quotes
+            tract += trim;
+          }
+         
+       } else {
+         tract = "no match";
+       }
         String s1 = inputFileList.get(i) + ", " + tract;
+        System.out.println("s1 " + s1);
         inputFileList.set(i, s1);
       }
 
@@ -313,6 +320,7 @@ public class FileController {
       
       writer.flush();
       writer.close();
+
 
     } catch(Exception e) {
       e.printStackTrace();
@@ -341,9 +349,15 @@ public class FileController {
       PatientInfo p = new PatientInfo();
       if (map.containsKey("tract")) {
         String tract = map.get("tract").get(i); //census tract is 11 digits: first 2 digits = state, next 3 = county, next 6 is tract
-        p.setState(tract.substring(0,2));
-        p.setCounty(tract.substring(2,5));
-        p.setTract(tract.substring(5,11));
+        if (!tract.equals("No_Match")) {
+          p.setState(tract.substring(0,2));
+          p.setCounty(tract.substring(2,5));
+          p.setTract(tract.substring(5,11));
+        } else {
+          p.setState(null);
+          p.setCounty(null);
+          p.setTract(null);
+        }
       }
       //ssdi
       if (map.containsKey("first name")) {
@@ -352,10 +366,7 @@ public class FileController {
       if (map.containsKey("last name")) {
         p.setLastName(map.get("last name").get(i));
       }
-      if (map.containsKey("middle initial")) {
-        p.setMiddleInitial(map.get("middle initial").get(i));
-      }
-
+     
       //bmi
       if (map.containsKey("weight(kg)")) {
         p.setWeight(map.get("weight(kg)").get(i));
@@ -590,8 +601,9 @@ public class FileController {
     String[] subject = this.chosenVariablesRequest.getListOfSubjectVariables();
 
     // ACS Request 
-    listOfPatients = acsApiService.makeAcsGetRequest(detailed, subject, listOfPatients);
-    
+    if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+      listOfPatients = acsApiService.makeAcsGetRequest(detailed, subject, listOfPatients);
+    }    
     // SSDI Request
     if (chosenVariablesRequest.isRequestedSsdiInfo()) {
       listOfPatients = ssdiService.getSsdiRecords(listOfPatients);
