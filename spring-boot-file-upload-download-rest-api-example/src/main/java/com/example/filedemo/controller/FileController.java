@@ -273,6 +273,8 @@ public class FileController {
           ioe.printStackTrace();
       }
 
+      // TODO: Validate Census Tract Information. If the byte[] updatedAddressFile gives an error response, need to parse it out
+      
       Resource censusResource = fileStorageService.loadFileAsResource(censusFile.getAbsolutePath());
       resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
 
