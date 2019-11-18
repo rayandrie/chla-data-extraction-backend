@@ -303,7 +303,11 @@ function sendVars() {
 	// }
 
 	// xhr.send(formData)
-	var listofSubjectVariables = $('#vars').val();
+
+	var listofSubjectVariables = [];
+	if($('#vars').val()){
+		listofSubjectVariables = $('#vars').val();
+	}
 	var listOfDetailedVariables = [];
 	var detailedVar1 = "Median Gross Rent as a % of Household Income - Renter-Occupied Households paying cash rent";
 	var detailedVar2 = "GINI Index of Income Inequality Households";
