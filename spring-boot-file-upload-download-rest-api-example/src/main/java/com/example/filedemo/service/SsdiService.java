@@ -28,11 +28,12 @@ public class SsdiService {
   public SsdiService() {}
 
   public List<PatientInfo> getSsdiRecords(List<PatientInfo> listOfPatients) {
-    // Need to find SSDI info for each patient using First Name, Middle Initial, Last Name and DOB
+    // Note: Middle Initial parameter is unused
+    // Need to find SSDI info for each patient using First Name, Last Name and DOB
     for (int i = 0; i < listOfPatients.size(); i++) {
       PatientInfo patient = listOfPatients.get(i);
       Document currDoc = getRecordsWithInfo(patient.getFirstName(), 
-        patient.getMiddleInitial(), patient.getLastName(), 
+        "", patient.getLastName(), 
         patient.getDob()
       );
 
