@@ -58,7 +58,7 @@ public class BmiService {
     Document document;
 
     // If date of measurement is empty, then just fill with today's date
-    if (dateOfMeasurement == null || dateOfMeasurement.isEmpty() || dateOfMeasurement.equals("")) {
+    if (dateOfMeasurement == null || dateOfMeasurement.isEmpty() || dateOfMeasurement.equals("") || dateOfMeasurement.equals("no date")) {
       dateOfMeasurement = Utilities.getTodayDate();
     }
 
