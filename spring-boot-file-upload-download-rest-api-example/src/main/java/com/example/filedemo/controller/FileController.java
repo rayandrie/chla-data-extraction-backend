@@ -308,7 +308,7 @@ public class FileController {
          tract = "no match";
        }
         String s1 = inputFileList.get(i) + ", " + tract;
-        System.out.println("s1 " + s1);
+        //System.out.println("s1 " + s1);
         inputFileList.set(i, s1);
       }
 
@@ -349,7 +349,7 @@ public class FileController {
       PatientInfo p = new PatientInfo();
       if (map.containsKey("tract")) {
         String tract = map.get("tract").get(i); //census tract is 11 digits: first 2 digits = state, next 3 = county, next 6 is tract
-        if (!tract.equals("No_Match")) {
+        if (!tract.equals("no match")) {
           p.setState(tract.substring(0,2));
           p.setCounty(tract.substring(2,5));
           p.setTract(tract.substring(5,11));
@@ -408,6 +408,7 @@ public class FileController {
         }
         map.put(lines.get(0).get(i), list);
       }
+
     } catch (FileNotFoundException fne) {
       System.out.println(fne);
 
@@ -585,7 +586,6 @@ public class FileController {
 
     try {
       Map<String, List<String>> inputMap = csvToMap(resource.getFile());
-      
       listOfPatients = makeListOfPatients(inputMap, content.size()-1);
 
     } catch (FileNotFoundException fne) {
