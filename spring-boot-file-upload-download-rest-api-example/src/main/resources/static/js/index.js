@@ -52,23 +52,25 @@ $(".next").click(function (event) {
 
 	//the user chose the variables
 	if ((event.target.id) == "chosedb") {
-		// var base_url = window.location.origin;
-		// var url = base_url + "/chooseVariables";
-		// var payload = ["% of Total Population - Under 5 Years"];
-		// console.log("url for post request to chooseVariables")
-
-		// var postData = {listOfSubjectVariables : payload};
-
-		// // jQuery .post method is used to send post request.
-		// $.post(url, postData, function (data, status) {
-		// 	alert("Ajax post status is " + status);
-		// 	alert(data);
-		// 	alert(status);
-		// });
-
+		var choseNone = true;
+		if(document.getElementById("BMI_switch").checked){
+			choseNone = false;
+		  }
+		  if(document.getElementById("SSDI_switch").checked){
+			choseNone = false;
+		  }
 		var selectedValues = $('#vars').val();
-		console.log("selected values:" + selectedValues);
-		sendVars();
+		if(selectedValues){
+			choseNone = false;
+		}
+		console.log("selected values:" + selectedValues + "\nBMI selected: " + "\nSSDI selected: ");
+		if(!choseNone){
+			console.log("choseNone is false");
+			sendVars();
+		}
+		else{
+			return;
+		}
 	}
 
 	//if the user tries to click next without uploading a file
@@ -76,7 +78,7 @@ $(".next").click(function (event) {
 		console.log("ONSUBMIT CLICKED");
 		var files = singleFileUploadInput.files;
 		if (files.length === 0) {
-			singleFileUploadError.innerHTML = "Please SELECT a file";
+			singleFileUploadError.innerHTML = "Please select a file";
 			console.log("DIDN'T SELECT FILE");
 			singleFileUploadError.style.display = "block";
 			return;
