@@ -229,101 +229,115 @@ public class FileController {
     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/downloadFile/").path(fileName)
         .toUriString();
     
-    // Procedure for Getting Census Tract Info
-    try {
-      Path path = Paths.get("..\\temp.csv");
-      // Delete file if it exists
-      if (path.toFile().exists()) {
-        Files.delete(path);
-      }
-      
-      //if ACS, create temp file with only the inputted address, city, state and zipcode
-      File tempFile = null;   
-      try {  
-        Path p = Files.createFile(path);   
-        tempFile = p.toFile(); 
-      }   
-      catch (IOException e)   {  
-        e.printStackTrace();  
-      }  
-
-      if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+    if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
+      // Procedure for Getting Census Tract Info
+      try {
+        Path path = Paths.get("..\\temp.csv");
+        // Delete file if it exists
+        if (path.toFile().exists()) {
+          Files.delete(path);
+        }
+        
+        //if ACS, create temp file with only the inputted address, city, state and zipcode
+        File tempFile = null;   
+        try {  
+          Path p = Files.createFile(path);   
+          tempFile = p.toFile(); 
+        }   
+        catch (IOException e)   {  
+          e.printStackTrace();  
+        }  
+        
         populateTempCSV(tempFile, f, Arrays.asList(acsVars));
+
+        //updatedAddressFile array has the census track info 
+        byte[] updatedAddressFile = acsApiService.getCensusTracts(tempFile);
+
+        Path censusPath = Paths.get("..\\censusTract.csv");
+        if (censusPath.toFile().exists()) {
+          Files.delete(censusPath);
+        }
+        File censusFile = null;   
+        try  {  
+          Path p = Files.createFile(censusPath);   
+          censusFile = p.toFile(); 
+        }   
+        catch (IOException e)   {  
+          e.printStackTrace();  
+        }  
+
+        // convert to file
+        try (FileOutputStream fos = new FileOutputStream(censusFile)) {
+            fos.write(updatedAddressFile);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        
+        Resource censusResource = fileStorageService.loadFileAsResource(censusFile.getAbsolutePath());
+        resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
+
+        //parse censusTract.csv then combine/append that file to input file
+        ArrayList<String> censusFileList = csvtoList(censusResource); // **strings seperated by "" like: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
+        ArrayList<String> inputFileList = csvtoList(resource);
+
+        // census: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
+        // -------------
+        // input: Unique ID, Address, City, State, Zip Code
+        // 1, 4600 Silver Hill Rd, Suitland, MD, 20746
+
+        inputFileList.set(0, inputFileList.get(0)+", tract");
+
+        //combines input file with census tract file
+        for (int i = 1; i < inputFileList.size(); i++) {
+          String census = censusFileList.get(i-1);
+          String[] sarr = census.split(","); 
+          //if no match for census tract, make tract null
+          String tract = "";
+          boolean contains = !census.contains("No_Match");
+          if (contains) {
+            //grab the census tract - last 3 like "06","067","001101"
+            for (int j = sarr.length - 4; j < sarr.length-1; j++) {
+              String trim = sarr[j].substring(1,sarr[j].length()-1); //removes quotes
+              tract += trim;
+            }
+          
+          } else {
+            tract = "no match";
+          }
+            String s1 = inputFileList.get(i) + ", " + tract;
+            //System.out.println("s1 " + s1);
+            inputFileList.set(i, s1);
+        }
+
+        FileWriter writer = new FileWriter(resource.getFile(), false);
+        for (String line : inputFileList) {
+          writer.append(line);
+          writer.write(System.getProperty("line.separator"));
+        }
+        
+        writer.flush();
+        writer.close();
+
+
+      } catch(Exception e) {
+        e.printStackTrace();
+        return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get Census Tract Info - check your address formatting.", "text/csv", 0);
+
       }
-
-      //updatedAddressFile array has the census track info 
-     byte[] updatedAddressFile = acsApiService.getCensusTracts(tempFile);
-
+    } else {
       Path censusPath = Paths.get("..\\censusTract.csv");
-      if (censusPath.toFile().exists()) {
-        Files.delete(censusPath);
-      }
-      File censusFile = null;   
-      try  {  
+      try {
+        if (censusPath.toFile().exists()) {
+          Files.delete(censusPath);
+        }
+        File censusFile = null;   
         Path p = Files.createFile(censusPath);   
         censusFile = p.toFile(); 
-      }   
-      catch (IOException e)   {  
+        Resource censusResource = fileStorageService.loadFileAsResource(censusFile.getAbsolutePath());
+        resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
+      } catch (IOException e)   {  
         e.printStackTrace();  
-      }  
-
-      // convert to file
-      try (FileOutputStream fos = new FileOutputStream(censusFile)) {
-          fos.write(updatedAddressFile);
-      } catch (IOException ioe) {
-          ioe.printStackTrace();
       }
-      
-      Resource censusResource = fileStorageService.loadFileAsResource(censusFile.getAbsolutePath());
-      resource = fileStorageService.loadFileAsResource(f.getAbsolutePath());
-
-      //parse censusTract.csv then combine/append that file to input file
-      ArrayList<String> censusFileList = csvtoList(censusResource); // **strings seperated by "" like: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
-      ArrayList<String> inputFileList = csvtoList(resource);
-
-      // census: "1","4600 Silver Hill Rd, Suitland, MD, 20746","Match","Exact","4600 Silver Hill Rd, SUITLAND, MD, 20746","-76.92691,38.846542","613199520","L","24","033","802405","1084"
-      // -------------
-      // input: Unique ID, Address, City, State, Zip Code
-      // 1, 4600 Silver Hill Rd, Suitland, MD, 20746
-
-      inputFileList.set(0, inputFileList.get(0)+", tract");
-
-      //combines input file with census tract file
-      for (int i = 1; i < inputFileList.size(); i++) {
-        String census = censusFileList.get(i-1);
-        String[] sarr = census.split(","); 
-        //if no match for census tract, make tract null
-        String tract = "";
-        boolean contains = !census.contains("No_Match");
-        if (contains) {
-          //grab the census tract - last 3 like "06","067","001101"
-          for (int j = sarr.length - 4; j < sarr.length-1; j++) {
-            String trim = sarr[j].substring(1,sarr[j].length()-1); //removes quotes
-            tract += trim;
-          }
-         
-       } else {
-         tract = "no match";
-       }
-        String s1 = inputFileList.get(i) + ", " + tract;
-        //System.out.println("s1 " + s1);
-        inputFileList.set(i, s1);
-      }
-
-      FileWriter writer = new FileWriter(resource.getFile(), false);
-      for (String line : inputFileList) {
-        writer.append(line);
-        writer.write(System.getProperty("line.separator"));
-      }
-      
-      writer.flush();
-      writer.close();
-
-
-    } catch(Exception e) {
-      e.printStackTrace();
-      return new UploadFileResponse("Internal Server Error", "Error in loading CSV file needed to get Census Tract Info - check your address formatting.", "text/csv", 0);
-
     }
 
     return new UploadFileResponse(fileName, fileDownloadUri, file.getContentType(), file.getSize());
@@ -498,8 +512,16 @@ public class FileController {
 
       // add new parameters - define column headers here
       ArrayList<String> parameters = new ArrayList<>();
-      for (String s : listOfPatients.get(0).getVarValByVarName().keySet()) {
-        parameters.add(s);
+      if (listOfPatients != null) {
+        if (!listOfPatients.isEmpty()) {
+          if (listOfPatients.get(0) != null) {
+            if (listOfPatients.get(0).getVarValByVarName() != null) {
+              for (String s : listOfPatients.get(0).getVarValByVarName().keySet()) {
+                parameters.add(s);
+              }
+            }
+          }
+        }
       }
       if (listOfPatients.get(0).getBmi()!= null && listOfPatients.get(0).getZScore()!= null && listOfPatients.get(0).getPercentile()!= null) {      
         parameters.add("bmi");
@@ -610,6 +632,13 @@ public class FileController {
     // BMI Request
     if (chosenVariablesRequest.isRequestedBmiInfo()) {
       listOfPatients = bmiService.getBmiInfo(listOfPatients);
+    }
+
+    if (resource == null) {
+      System.out.println("WTFFFFFFF");
+    }
+    if (content == null) {
+      System.out.println("FUCK YOU");
     }
 
     populateCSV(resource, content, listOfPatients); 
