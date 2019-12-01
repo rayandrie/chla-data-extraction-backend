@@ -58,7 +58,7 @@ public class BmiService {
     Document document;
 
     // If date of measurement is empty, then just fill with today's date
-    if (dateOfMeasurement == null || dateOfMeasurement.isEmpty() || dateOfMeasurement.equals("") || dateOfMeasurement.equals("no date")) {
+    if (dateOfMeasurement == null || dateOfMeasurement.isEmpty() || dateOfMeasurement.equals("") || dateOfMeasurement.equals("no date") || dateOfMeasurement.equals(" ")) {
       dateOfMeasurement = Utilities.getTodayDate();
     }
 
@@ -73,6 +73,12 @@ public class BmiService {
       // return errRes;
       return null;
     }
+
+    // System.out.println("Date of Measurement: " + dateOfMeasurement);
+    // System.out.println("Date of Birth: " + dob);
+    // System.out.println("Weight: " + weight);
+    // System.out.println("Height: " + height);
+    // System.out.println("Gender: " + gender);
 
     try {
       Response res = Jsoup.connect(URL_ZSCORE)
