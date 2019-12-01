@@ -5,6 +5,7 @@
     <title>CHLA Data Extraction</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/newmain.css">
     <link rel="stylesheet" href="/css/contact.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open Sans">
@@ -14,7 +15,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.11/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.11/js/select2.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.7/angular.min.js"></script>
 </head>
 
 <body>
@@ -22,20 +23,43 @@
         <h2>Sorry! Your browser doesn't support Javascript</h2>
     </noscript>
 
-    <div class="w3-bar w3-black w3-hide-small" >
-        <!-- <a href="newindex.html" class="w3-bar-item w3-button" style = "font-weight: bold;">v2 User Interface</a> -->
+    <!-- Navigation bar with social media icons -->
+    <div class="w3-bar w3-black w3-hide-small" id = "navbar">
+        <!-- <a href="index.html" class="w3-bar-item w3-button" style="font-weight: bold;">v1 User Interface</a> -->
         <a href="index.html" class="w3-bar-item w3-button">Home</a>
         <a href="contact.html" class="w3-bar-item w3-button">Contact</a>
-        <a href="file-format.html" class="w3-bar-item w3-button">File Formatting</a>
+        <a href="File Formatting.pdf" class="w3-bar-item w3-button">File Formatting</a>
         <a href="about.html" class="w3-bar-item w3-button">About</a>
+
+        <!-- <a href="https://twitter.com/LisenMee" class="w3-bar-item w3-button"><i class="fa fa-twitter"></i></a>
+        <a href="https://www.youtube.com/channel/UCEdC6Qk_DZ9fX_gUYFJ1tsA" class="w3-bar-item w3-button"><i
+                class="fa fa-youtube"></i></a>
+        <a href="https://plus.google.com/115714479889692934329" class="w3-bar-item w3-button"><i
+                class="fa fa-google"></i></a>
+        <a href="https://www.linkedin.com/in/lisen-me-b017a8137/" class="w3-bar-item w3-button"><i
+                class="fa fa-linkedin"></i></a> -->
     </div>
 
     <div class="center-div">
-        <h1>About the Project</h1>
-        <p> The Children’s Hospital of LA has developed a tool to help clinical researchers mass pull data from public databases 
+        <h1 id = "home-description" style="font-size: 50px; margin-top: -50px; margin-bottom: 20px;">About the Project</h1>
+
+                        
+        <h6 id = "home-description"> The Children’s Hospital of LA has developed a tool to help clinical researchers mass pull data from public databases 
             like the American Community Survey (ACS). Previously, researchers had to tediously and manually obtain data for each 
             element of their dataset one by one, but now with this tool they can send in their input dataset as a csv and the tool 
             will append information to that input pertaining to a user-selected database parameter.</p>
+
+        <h6 id = "home-description">This tool was built to allow researchers to batch queries on public databases and
+                    online calculators. It was developed by Sarah Lu, Raymond Andriejanssen, and Sophia Hu as part
+                    of the CS 401 class at USC. Their project mentor is Juan Espinoza, MD. You can contact the
+                    project team <a id="contact" href='contact.html'>here</a>.</h6>
+
+
+    <h1 id = "home-description" style="font-size: 50px; margin-top:40px; margin-bottom: 20px;">Databases Supported</h1>
+    <h6 id = "home-description" style="text-align: center;">American Community Survey <a id="contact" href='https://www.census.gov/programs-surveys/acs'>(ACS)</a></h6>
+    <h6 id = "home-description" style="text-align: center;">Children's Hospital of Philadelphia BMI Calculator <a id="contact" href='https://zscore.research.chop.edu/'>(BMI)</a></h6>
+    <h6 id = "home-description" style="text-align: center;">Social Security Death Index <a id="contact" href='https://stevemorse.org/ssdi/ssdi.html'>(SSDI)</a></h6>
+
     </div>
 
     <script src="/js/main.js"></script>
