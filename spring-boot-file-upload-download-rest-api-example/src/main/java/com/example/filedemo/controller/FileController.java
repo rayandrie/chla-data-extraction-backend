@@ -199,7 +199,6 @@ public class FileController {
 
     // String[] vars = null;
     if (!chosenVariablesRequest.isDetailedVariablesEmpty() || !chosenVariablesRequest.isSubjectVariablesEmpty()) {
-      // vars = vars1;
       String missingHeader = inputFileValidation(f, acsVars);
       if (missingHeader != null) {
         return new UploadFileResponse("Internal Server Error", "You are missing an ACS variable: " + missingHeader + ". Make sure you include all the necessary columns in your file.", "text/csv", 0);
@@ -207,7 +206,6 @@ public class FileController {
     }
 
     if (chosenVariablesRequest.isRequestedSsdiInfo()) {
-      // vars = vars1;
       String missingHeader = inputFileValidation(f, ssdiVars);
       if (missingHeader != null) {
         return new UploadFileResponse("Internal Server Error", "You are missing an SSDI variable: " + missingHeader + ". Make sure you include all the necessary columns in your file.", "text/csv", 0);
@@ -215,7 +213,6 @@ public class FileController {
     }
 
     if (chosenVariablesRequest.isRequestedBmiInfo()) {
-      // vars = vars1;
       String missingHeader = inputFileValidation(f, bmiVars);
       if (missingHeader != null) {
         return new UploadFileResponse("Internal Server Error", "You are missing a BMI variable: " + missingHeader + ". Make sure you include all the necessary columns in your file.", "text/csv", 0);
@@ -285,7 +282,7 @@ public class FileController {
         // input: Unique ID, Address, City, State, Zip Code
         // 1, 4600 Silver Hill Rd, Suitland, MD, 20746
 
-        inputFileList.set(0, inputFileList.get(0)+",Tract");
+        inputFileList.set(0, inputFileList.get(0)+", tract");
 
         //combines input file with census tract file
         for (int i = 1; i < inputFileList.size(); i++) {
@@ -304,7 +301,7 @@ public class FileController {
           } else {
             tract = "no match";
           }
-            String s1 = inputFileList.get(i) + "," + tract;
+          String s1 = inputFileList.get(i) + ", " + tract;
             //System.out.println("s1 " + s1);
             inputFileList.set(i, s1);
         }
@@ -408,7 +405,7 @@ public class FileController {
       String thisLine;
       while ((thisLine = br.readLine()) != null) {
         if (!thisLine.isEmpty()) {
-          lines.add(Arrays.asList(thisLine.toLowerCase().split(",")));
+          lines.add(Arrays.asList(thisLine.toLowerCase().split(", ")));
         }
       }
 
@@ -437,7 +434,7 @@ public class FileController {
      String thisLine;
      while ((thisLine = br.readLine()) != null) {
        if (!thisLine.isEmpty()) {
-         lines.add(Arrays.asList(thisLine.split(",")));
+        lines.add(Arrays.asList(thisLine.split(", ")));
        }
      }
 

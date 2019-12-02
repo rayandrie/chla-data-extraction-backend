@@ -183,7 +183,7 @@ function uploadSingleFile(file) {
 			
 			if (csvError || missing) {
 				var json = JSON.parse(xhr.responseText);
-				document.querySelector('#success').innerHTML = "<p>" + json.fileDownloadUri + ". Please try again." + "</p>";
+				document.querySelector('#success').innerHTML = "<p>" + json.fileDownloadUri + "Please try again." + "</p>";
 				document.querySelector('#success').style.display = "block";
 				document.getElementById('download').style.visibility= 'hidden';
 			} else { // no errors, show success msg and download btn when ready
