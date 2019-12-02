@@ -178,6 +178,48 @@ public class FileController {
     return null;
   }
  
+  //break lines into strings and trim extra space (if file has space + comma)
+  //then add spaces between items (in case file is just comma)
+  public void formatFile(File file) {
+    //trims white space from every string
+    List<List<String>> noSpaceLines = new ArrayList<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        
+        if (!line.isEmpty()) {
+          List<String> nospaceline = new ArrayList<>();
+          String[] lineSplit = line.split(",");
+          for (String s : lineSplit) {
+            nospaceline.add(s.trim());
+          }
+          noSpaceLines.add(nospaceline);
+        }
+      }
+      br.close();
+
+  } catch (IOException ioe) {
+      ioe.printStackTrace();
+      System.out.println("formatting file error");
+  } 
+
+    // add space in front of string entries and write to file
+    try {
+      FileWriter writer = new FileWriter(file);
+      for (List<String> list : noSpaceLines) {
+          String spaceLine = String.join(", ", list);
+          writer.append(spaceLine);
+          writer.write(System.getProperty("line.separator")); //new line
+      }
+
+      writer.close();
+    } catch (IOException ioe) {
+        ioe.printStackTrace();
+        System.out.println("formatting file error");
+    }
+
+    //return file;
+  }
 
   @PostMapping("/uploadFile")
   public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
@@ -191,6 +233,9 @@ public class FileController {
      } catch (IOException e) {
         System.out.println(e);
      }
+
+     //format the file passed in - trim extra space then space everything
+     formatFile(f);
 
      // User must make Headers EXACTLY the same as below
      String[] acsVars = {"Unique ID", "Address", "Zip Code", "State", "City"};
