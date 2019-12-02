@@ -218,7 +218,6 @@ public class FileController {
         System.out.println("formatting file error");
     }
 
-    //return file;
   }
 
   @PostMapping("/uploadFile")
@@ -234,7 +233,7 @@ public class FileController {
         System.out.println(e);
      }
 
-     //format the file passed in - trim extra space then space everything
+     //format the file passed in - trim extra space then add space between everything
      formatFile(f);
 
      // User must make Headers EXACTLY the same as below
